@@ -21,8 +21,5 @@
       "name": "Export Localization",
       "command": "export"
     }
-  ],
-  "version": "1.0.0",
-  "author": "Zeyad Abdullah",
-  "containsExternalContent": false
+  ]
 }
