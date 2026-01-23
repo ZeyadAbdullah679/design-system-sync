@@ -1,4 +1,4 @@
-# 🌐 Figma Localization Exporter
+# 🌐 Localize To GitHub
 
 A powerful Figma plugin that automatically exports string variables to GitHub repositories with support for Android and iOS platforms.
 
