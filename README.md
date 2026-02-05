@@ -366,7 +366,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Acknowledgments
 
 Built with ❤️ for the multi-platform development community.
-
----
-
-**Made with ❤️ for multi-platform design systems**
