@@ -163,8 +163,8 @@ Select what you want to export:
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="primary">#FF6200EE</color>
-    <color name="secondary">#FF03DAC6</color>
+    lor name="primary">#FF6200EE</color>
+    lor name="secondary">#FF03DAC6</color>
 </resources>
 ```
 
@@ -281,7 +281,7 @@ class AppTextStyles {
 
 Built-in mappings for 30+ languages including:
 
-English, Arabic, Spanish, French, German, Italian, Portuguese, Russian, Chinese, Japanese, Korean, Dutch, Polish, Turkish, Swedish, Norwegian, Danish, Finnish, Greek, Hebrew, Hindi, Thai, Vietnamese, Indonesian, Malay, Czech, Hungarian, Romanian, Ukrainian, and more.
+English, Arabic, Spanish, French, German, Italian, Portuguese, Russian, Chinese, Japanese, Korean, Dutch, Polish, Turkish, Swedish, Norwegian, Danish, Finnish, Greek, Hindi, Thai, Vietnamese, Indonesian, Malay, Czech, Hungarian, Romanian, Ukrainian, and more.
 
 ## 🔧 Troubleshooting
 
@@ -305,6 +305,21 @@ npm install          # Install dependencies
 npm run build        # Build for production
 npm run watch        # Build with watch mode
 npm run clean        # Clean build artifacts
+npm test             # Run tests
+npm run test:coverage # Run tests with coverage
+```
+
+### Testing
+The plugin includes a comprehensive test suite with 60+ tests covering:
+- String parsing (Android XML, iOS Strings, Flutter ARB)
+- Color conversion and generation
+- Typography generation
+- GitHub API integration
+- Edge cases and error handling
+
+Run tests with:
+```bash
+npm test
 ```
 
 ### Debug Mode
@@ -318,6 +333,8 @@ Set `DEBUG_MODE = true` in both `code.ts` and `ui.html` to enable console loggin
 - ✨ NEW: Extract text styles from Figma
 - 🎨 Enhanced UI with 3 export types
 - 🦋 Complete Flutter integration
+- 🧪 Comprehensive test suite with 60+ tests
+- 🔧 Better type handling for Figma API objects
 
 ### v2.0.0 (2026-01-24)
 - ✨ NEW: Color variables support
@@ -332,9 +349,19 @@ Set `DEBUG_MODE = true` in both `code.ts` and `ui.html` to enable console loggin
 - **Issues:** [GitHub Issues](https://github.com/ZeyadAbdullah679/design-system-sync/issues)
 - **Plugin:** [Figma Community](https://www.figma.com/community/plugin/1595034045326188787/design-system-sync)
 
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
