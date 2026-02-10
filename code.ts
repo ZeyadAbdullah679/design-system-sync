@@ -716,10 +716,52 @@ function generateAndroidTypography(styles: TypographyStyle[], packageName: strin
   lines.push('// Generated from Figma text styles');
   lines.push('');
 
+  // System fonts that don't need external resources
+  const systemFonts: { [key: string]: string } = {
+    'Roboto': 'FontFamily.Default',
+    'Sans Serif': 'FontFamily.SansSerif',
+    'SansSerif': 'FontFamily.SansSerif',
+    'Serif': 'FontFamily.Serif',
+    'Monospace': 'FontFamily.Monospace',
+    'Cursive': 'FontFamily.Cursive'
+  };
+
+  // Collect unique custom font families (not system fonts)
+  const customFontFamilies = new Set<string>();
+  styles.forEach(style => {
+    if (style.fontFamily && !systemFonts[style.fontFamily]) {
+      customFontFamilies.add(style.fontFamily);
+    }
+  });
+
+  // Generate FontFamily definitions for custom fonts only
+  if (customFontFamilies.size > 0) {
+    lines.push('// Custom Font Family Definitions');
+    lines.push('// TODO: Add font files to res/font/ directory and define FontFamily objects');
+    lines.push('// Example:');
+    lines.push('// val InterFontFamily = FontFamily(');
+    lines.push('//     Font(R.font.inter_regular, FontWeight.Normal),');
+    lines.push('//     Font(R.font.inter_medium, FontWeight.Medium),');
+    lines.push('//     Font(R.font.inter_bold, FontWeight.Bold)');
+    lines.push('// )');
+    lines.push('');
+    
+    customFontFamilies.forEach(fontFamily => {
+      const safeFontName = fontFamily.replace(/\s+/g, '');
+      lines.push(`// TODO: Define ${safeFontName}FontFamily with actual font resources`);
+      lines.push(`val ${safeFontName}FontFamily = FontFamily.Default // Replace with custom font`);
+    });
+    
+    lines.push('');
+    lines.push('// Typography Styles');
+    lines.push('');
+  }
+
+  // Generate TextStyles
   styles.forEach(style => {
     // Remove "Font" or "Typography" prefix if present
     let cleanName = style.name.replace(/^(font|typography)[\/\s-_]*/i, '');
-
+    
     const safeName = cleanName
       .split(/[^a-zA-Z0-9]+/)
       .filter(part => part.length > 0)
@@ -727,26 +769,30 @@ function generateAndroidTypography(styles: TypographyStyle[], packageName: strin
       .join('');
 
     lines.push(`val ${safeName} = TextStyle(`);
-
-    // Always include fontFamily
+    
+    // Determine which FontFamily to use
     if (style.fontFamily) {
-      const fontFamilyName = style.fontFamily.replace(/\s+/g, '');
-      lines.push(`    fontFamily = FontFamily.${fontFamilyName},`);
+      if (systemFonts[style.fontFamily]) {
+        // Use system font directly
+        lines.push(`    fontFamily = ${systemFonts[style.fontFamily]},`);
+      } else {
+        // Use custom FontFamily variable
+        const safeFontName = style.fontFamily.replace(/\s+/g, '');
+        lines.push(`    fontFamily = ${safeFontName}FontFamily,`);
+      }
     }
-
+    
     lines.push(`    fontSize = ${Math.round(style.fontSize)}.sp,`);
     lines.push(`    fontWeight = FontWeight(${style.fontWeight}),`);
-
+    
     if (style.letterSpacing !== 0) {
-      // Round to 2 decimal places
       const letterSpacing = Math.round(style.letterSpacing * 100) / 100;
       lines.push(`    letterSpacing = ${letterSpacing}.sp,`);
     }
-
-    // Round lineHeight to 1 decimal place
+    
     const lineHeight = Math.round(style.lineHeight * 10) / 10;
     lines.push(`    lineHeight = ${lineHeight}.sp`);
-
+    
     lines.push(')');
     lines.push('');
   });
