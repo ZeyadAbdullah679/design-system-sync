@@ -631,57 +631,80 @@ type TypographyStyle = {
   lineHeight: number;
 };
 
-// Extract typography/font variables from Figma (from text styles or NUMBER variables)
+// Extract typography/font styles from Figma Text Styles
 async function extractTypographyStyles(): Promise<TypographyStyle[]> {
   const styles: TypographyStyle[] = [];
   
-  // Get all local text styles
-  const textStyles = await figma.getLocalTextStylesAsync();
-  
-  for (const style of textStyles) {
-    // TextStyle has fontName, fontSize, letterSpacing, lineHeight, fontWeight
-    const fontFamily = style.fontName.family;
-    const fontSize = style.fontSize as number;
+  try {
+    // Get all local text styles (NOT from variables!)
+    const textStyles = await figma.getLocalTextStylesAsync();
     
-    // Handle letterSpacing (can be number or object with value/unit)
-    let letterSpacing = 0;
-    if (typeof style.letterSpacing === 'number') {
-      letterSpacing = style.letterSpacing;
-    } else if (style.letterSpacing && typeof style.letterSpacing === 'object' && 'value' in style.letterSpacing) {
-      letterSpacing = style.letterSpacing.value as number;
-    }
+    sendLog(`Found ${textStyles.length} text styles in Figma`);
     
-    // Handle lineHeight (can be number or object with value/unit)
-    let lineHeight = fontSize * 1.2; // default
-    if (typeof style.lineHeight === 'number') {
-      lineHeight = style.lineHeight;
-    } else if (style.lineHeight && typeof style.lineHeight === 'object' && 'value' in style.lineHeight) {
-      lineHeight = style.lineHeight.value as number;
-    }
-    
-    // Map Figma font weight string to numeric value
-    const fontWeightMap: { [key: string]: number } = {
-      'Thin': 100,
-      'ExtraLight': 200,
-      'Light': 300,
-      'Regular': 400,
-      'Medium': 500,
-      'SemiBold': 600,
-      'Bold': 700,
-      'ExtraBold': 800,
-      'Black': 900
-    };
-    
-    const fontWeight = fontWeightMap[style.fontName.style] || 400;
+    for (const style of textStyles) {
+      try {
+        // Get font properties - check if not mixed
+        let fontFamily = 'Inter';
+        let fontStyle = 'Regular';
+        
+        if (typeof style.fontName === 'object' && style.fontName !== null && 'family' in style.fontName) {
+          fontFamily = style.fontName.family;
+          fontStyle = style.fontName.style;
+        }
+        
+        const fontSize = typeof style.fontSize === 'number' ? style.fontSize : 16;
+        
+        // Handle letter spacing
+        let letterSpacing = 0;
+        if (typeof style.letterSpacing === 'number') {
+          letterSpacing = style.letterSpacing;
+        } else if (style.letterSpacing && typeof style.letterSpacing === 'object' && 'value' in style.letterSpacing) {
+          letterSpacing = (style.letterSpacing as any).value as number;
+        }
+        
+        // Handle line height
+        let lineHeight = fontSize * 1.2; // default
+        if (typeof style.lineHeight === 'number') {
+          lineHeight = style.lineHeight;
+        } else if (style.lineHeight && typeof style.lineHeight === 'object' && 'value' in style.lineHeight) {
+          lineHeight = (style.lineHeight as any).value as number;
+        }
+        
+        // Map Figma font weight string to numeric value
+        const fontWeightMap: { [key: string]: number } = {
+          'Thin': 100,
+          'ExtraLight': 200,
+          'Light': 300,
+          'Regular': 400,
+          'Medium': 500,
+          'SemiBold': 600,
+          'Semibold': 600,
+          'Bold': 700,
+          'ExtraBold': 800,
+          'Black': 900,
+          'Heavy': 800
+        };
+        
+        const fontWeight = fontWeightMap[fontStyle] || 400;
 
-    styles.push({
-      name: style.name,
-      fontFamily: fontFamily,
-      fontSize: fontSize,
-      fontWeight: fontWeight,
-      letterSpacing: letterSpacing,
-      lineHeight: lineHeight
-    });
+        sendLog(`Processing style: ${style.name} (${fontSize}pt, ${fontStyle})`);
+
+        styles.push({
+          name: style.name,
+          fontFamily: fontFamily,
+          fontSize: fontSize,
+          fontWeight: fontWeight,
+          letterSpacing: letterSpacing,
+          lineHeight: lineHeight
+        });
+      } catch (styleError) {
+        sendLog(`Error processing style ${style.name}: ${styleError}`, 'error');
+      }
+    }
+
+    sendLog(`Successfully extracted ${styles.length} typography styles`);
+  } catch (error) {
+    sendLog(`Error in extractTypographyStyles: ${error}`, 'error');
   }
 
   return styles;
@@ -848,108 +871,108 @@ figma.ui.onmessage = async (msg: any) => {
     figma.ui.postMessage({ type: 'settings-saved' });
   }
 
-  // Export variables (strings, colors, fonts)
-  if (msg.type === 'export-variables') {
-    try {
-      const collections = await figma.variables.getLocalVariableCollectionsAsync();
+// Export variables (strings, colors, fonts)
+if (msg.type === 'export-variables') {
+  try {
+    const collections = await figma.variables.getLocalVariableCollectionsAsync();
 
-      if (collections.length === 0) {
-        figma.ui.postMessage({ type: 'error', message: 'No variable collections found.' });
-        return;
-      }
+    // Extract STRING variables
+    const stringCollections: any[] = [];
+    for (const collection of collections) {
+      const stringVariables: any[] = [];
 
-      // Extract STRING variables
-      const stringCollections: any[] = [];
-      for (const collection of collections) {
-        const stringVariables: any[] = [];
+      for (const variableId of collection.variableIds) {
+        const variable = await figma.variables.getVariableByIdAsync(variableId);
 
-        for (const variableId of collection.variableIds) {
-          const variable = await figma.variables.getVariableByIdAsync(variableId);
-
-          if (variable && variable.resolvedType === 'STRING') {
-            const variableData: any = {
-              id: variable.id,
-              name: variable.name,
-              description: variable.description || '',
-              type: variable.resolvedType,
-              values: {}
-            };
-
-            for (const modeId in variable.valuesByMode) {
-              if (Object.prototype.hasOwnProperty.call(variable.valuesByMode, modeId)) {
-                variableData.values[modeId] = variable.valuesByMode[modeId];
-              }
-            }
-
-            stringVariables.push(variableData);
-          }
-        }
-
-        if (stringVariables.length > 0) {
-          const collectionData: any = {
-            id: collection.id,
-            name: collection.name,
-            modes: collection.modes.map((mode) => ({
-              name: mode.name,
-              modeId: mode.modeId
-            })),
-            variables: stringVariables
+        if (variable && variable.resolvedType === 'STRING') {
+          const variableData: any = {
+            id: variable.id,
+            name: variable.name,
+            description: variable.description || '',
+            type: variable.resolvedType,
+            values: {}
           };
 
-          stringCollections.push(collectionData);
+          for (const modeId in variable.valuesByMode) {
+            if (Object.prototype.hasOwnProperty.call(variable.valuesByMode, modeId)) {
+              variableData.values[modeId] = variable.valuesByMode[modeId];
+            }
+          }
+
+          stringVariables.push(variableData);
         }
       }
 
-      const totalStrings = stringCollections.reduce((sum, col) => sum + col.variables.length, 0);
-      const totalLanguages = stringCollections[0]?.modes.length || 0;
+      if (stringVariables.length > 0) {
+        const collectionData: any = {
+          id: collection.id,
+          name: collection.name,
+          modes: collection.modes.map((mode) => ({
+            name: mode.name,
+            modeId: mode.modeId
+          })),
+          variables: stringVariables
+        };
 
-      // Extract COLOR variables
-      const colorCollections = await extractColorCollections();
-      const totalColors = colorCollections.reduce((sum, col) => sum + col.variables.length, 0);
-
-      // Extract TYPOGRAPHY/FONT styles
-      const typographyStyles = await extractTypographyStyles();
-      const totalFonts = typographyStyles.length;
-
-      // Combine collection names
-      const allCollectionNames = [
-        ...stringCollections.map(c => `${c.name} (strings)`),
-        ...colorCollections.map(c => `${c.name} (colors)`)
-      ];
-      
-      if (totalFonts > 0) {
-        allCollectionNames.push(`Text Styles (${totalFonts} fonts)`);
+        stringCollections.push(collectionData);
       }
-
-      figma.ui.postMessage({
-        type: 'variables-data',
-        data: {
-          strings: stringCollections,
-          colors: colorCollections,
-          typography: typographyStyles
-        },
-        stats: {
-          collections: stringCollections.length + colorCollections.length + (totalFonts > 0 ? 1 : 0),
-          strings: totalStrings,
-          languages: totalLanguages,
-          colors: totalColors,
-          fonts: totalFonts,
-          collectionNames: allCollectionNames
-        }
-      });
-
-      const parts = [];
-      if (totalStrings > 0) parts.push(`${totalStrings} strings`);
-      if (totalColors > 0) parts.push(`${totalColors} colors`);
-      if (totalFonts > 0) parts.push(`${totalFonts} fonts`);
-      
-      figma.notify(`✅ Loaded ${parts.join(', ')}`);
-
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      figma.ui.postMessage({ type: 'error', message: `Error: ${errorMessage}` });
     }
+
+    const totalStrings = stringCollections.reduce((sum, col) => sum + col.variables.length, 0);
+    const totalLanguages = stringCollections[0]?.modes.length || 0;
+
+    // Extract COLOR variables
+    const colorCollections = await extractColorCollections();
+    const totalColors = colorCollections.reduce((sum, col) => sum + col.variables.length, 0);
+
+    // Extract TYPOGRAPHY/FONT styles from Text Styles (NOT variables)
+    sendLog('Extracting text styles from Figma...');
+    const typographyStyles = await extractTypographyStyles();
+    const totalFonts = typographyStyles.length;
+    
+    sendLog(`Found ${totalFonts} text styles`);
+
+    // Combine collection names
+    const allCollectionNames = [
+      ...stringCollections.map(c => `${c.name} (strings)`),
+      ...colorCollections.map(c => `${c.name} (colors)`)
+    ];
+    
+    if (totalFonts > 0) {
+      allCollectionNames.push(`Text Styles (${totalFonts} fonts)`);
+    }
+
+    figma.ui.postMessage({
+      type: 'variables-data',
+      data: {
+        strings: stringCollections,
+        colors: colorCollections,
+        typography: typographyStyles
+      },
+      stats: {
+        collections: stringCollections.length + colorCollections.length + (totalFonts > 0 ? 1 : 0),
+        strings: totalStrings,
+        languages: totalLanguages,
+        colors: totalColors,
+        fonts: totalFonts,
+        collectionNames: allCollectionNames
+      }
+    });
+
+    const parts = [];
+    if (totalStrings > 0) parts.push(`${totalStrings} strings`);
+    if (totalColors > 0) parts.push(`${totalColors} colors`);
+    if (totalFonts > 0) parts.push(`${totalFonts} fonts`);
+    
+    figma.notify(`✅ Loaded ${parts.join(', ')}`);
+
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    sendLog(`Error extracting data: ${errorMessage}`, 'error');
+    figma.ui.postMessage({ type: 'error', message: `Error: ${errorMessage}` });
   }
+}
+
 
   // Test GitHub Connection
   if (msg.type === 'test-github') {
