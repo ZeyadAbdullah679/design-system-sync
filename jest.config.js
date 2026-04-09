@@ -5,9 +5,13 @@ module.exports = {
   testMatch: ['**/__tests__/**/*.ts', '**/?(*.)+(spec|test).ts'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   collectCoverageFrom: [
-    'code.ts',
-    '!**/*.d.ts',
-    '!**/__tests__/**'
+    'src/**/*.ts',
+    '!src/plugin.ts',
+    '!src/extractors/**',
+    '!src/utils/debug.ts',
+    '!src/utils/network.ts',
+    '!src/ui/**',
+    '!**/*.d.ts'
   ],
   coverageThreshold: {
     global: {
@@ -21,9 +25,12 @@ module.exports = {
   transform: {
     '^.+\\.ts$': ['ts-jest', {
       tsconfig: {
+        target: 'ES2017',
+        module: 'commonjs',
         esModuleInterop: true,
         allowSyntheticDefaultImports: true,
-        skipLibCheck: true
+        skipLibCheck: true,
+        strict: true
       }
     }]
   }

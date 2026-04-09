@@ -1,9 +1,9 @@
 # Build output
 code.js
 code.js.map
+ui.html
 out/
 dist/
-code.js
 
 # Node modules
 node_modules/

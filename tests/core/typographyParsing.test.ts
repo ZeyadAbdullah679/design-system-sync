@@ -1,136 +1,14 @@
+import { TypographyStyle } from '../../src/types';
+import {
+  mapFontWeightToSwiftUI,
+  mapFontWeightToFlutter,
+  generateAndroidTypography,
+  generateAndroidTypographyXML,
+  generateIOSTypography,
+  generateFlutterTypography
+} from '../../src/generators/typography';
+
 describe('Typography Parsing Tests', () => {
-  function mapFontWeightToSwiftUI(weight: number): string {
-    if (weight <= 100) return 'ultraLight';
-    if (weight <= 200) return 'thin';
-    if (weight <= 300) return 'light';
-    if (weight <= 400) return 'regular';
-    if (weight <= 500) return 'medium';
-    if (weight <= 600) return 'semibold';
-    if (weight <= 700) return 'bold';
-    if (weight <= 800) return 'heavy';
-    return 'black';
-  }
-
-  function mapFontWeightToUIKit(weight: number): string {
-    return mapFontWeightToSwiftUI(weight);
-  }
-
-  function mapFontWeightToFlutter(weight: number): string {
-    if (weight <= 100) return 'w100';
-    if (weight <= 200) return 'w200';
-    if (weight <= 300) return 'w300';
-    if (weight <= 400) return 'w400';
-    if (weight <= 500) return 'w500';
-    if (weight <= 600) return 'w600';
-    if (weight <= 700) return 'w700';
-    if (weight <= 800) return 'w800';
-    return 'w900';
-  }
-
-  type TypographyStyle = {
-    name: string;
-    fontFamily: string;
-    fontSize: number;
-    fontWeight: number;
-    letterSpacing: number;
-    lineHeight: number;
-  };
-
-  function generateAndroidTypography(styles: TypographyStyle[], packageName: string | null): string {
-    const lines: string[] = [];
-
-    if (packageName) {
-      lines.push(`package ${packageName}`, '');
-    }
-
-    lines.push('import androidx.compose.ui.text.TextStyle');
-    lines.push('import androidx.compose.ui.text.font.FontWeight');
-    lines.push('import androidx.compose.ui.unit.sp');
-    lines.push('');
-    lines.push('// Generated from Figma text styles');
-    lines.push('');
-
-    styles.forEach(style => {
-      const safeName = style.name
-        .split(/[^a-zA-Z0-9]+/)
-        .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-        .join('');
-
-      lines.push(`val ${safeName} = TextStyle(`);
-      lines.push(`    fontSize = ${style.fontSize}.sp,`);
-      lines.push(`    fontWeight = FontWeight(${style.fontWeight}),`);
-      if (style.letterSpacing !== 0) {
-        lines.push(`    letterSpacing = ${style.letterSpacing}.sp,`);
-      }
-      lines.push(`    lineHeight = ${style.lineHeight}.sp`);
-      lines.push(')');
-      lines.push('');
-    });
-
-    return lines.join('\n');
-  }
-
-  function generateIOSTypography(styles: TypographyStyle[], useSwiftUI: boolean): string {
-    const lines: string[] = [];
-
-    lines.push('// Generated from Figma text styles');
-    lines.push(useSwiftUI ? 'import SwiftUI' : 'import UIKit');
-    lines.push('');
-    lines.push('// MARK: - Typography Styles');
-    lines.push(useSwiftUI ? 'extension Font {' : 'extension UIFont {');
-
-    styles.forEach(style => {
-      const parts = style.name.split(/[^a-zA-Z0-9]+/);
-      const safeName = parts[0].toLowerCase() + parts.slice(1).map(p => 
-        p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()
-      ).join('');
-
-      if (useSwiftUI) {
-        const swiftUIWeight = mapFontWeightToSwiftUI(style.fontWeight);
-        lines.push(`    static let ${safeName} = Font.system(size: ${style.fontSize}, weight: .${swiftUIWeight})`);
-      } else {
-        const uiKitWeight = mapFontWeightToUIKit(style.fontWeight);
-        lines.push(`    static let ${safeName} = UIFont.systemFont(ofSize: ${style.fontSize}, weight: .${uiKitWeight})`);
-      }
-    });
-
-    lines.push('}');
-    lines.push('');
-    return lines.join('\n');
-  }
-
-  function generateFlutterTypography(styles: TypographyStyle[]): string {
-    const lines: string[] = [];
-
-    lines.push('// Generated from Figma text styles');
-    lines.push('import \'package:flutter/material.dart\';');
-    lines.push('');
-    lines.push('class AppTextStyles {');
-
-    styles.forEach(style => {
-      const parts = style.name.split(/[^a-zA-Z0-9]+/);
-      const safeName = parts[0].toLowerCase() + parts.slice(1).map(p => 
-        p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()
-      ).join('');
-
-      const flutterWeight = mapFontWeightToFlutter(style.fontWeight);
-
-      lines.push(`  static const TextStyle ${safeName} = TextStyle(`);
-      lines.push(`    fontSize: ${style.fontSize},`);
-      lines.push(`    fontWeight: FontWeight.${flutterWeight},`);
-      if (style.letterSpacing !== 0) {
-        lines.push(`    letterSpacing: ${style.letterSpacing},`);
-      }
-      lines.push(`    height: ${(style.lineHeight / style.fontSize).toFixed(2)},`);
-      lines.push(`  );`);
-      lines.push('');
-    });
-
-    lines.push('}');
-    lines.push('');
-    return lines.join('\n');
-  }
-
   const createMockTextStyle = (
     name: string,
     fontSize: number,
@@ -165,7 +43,7 @@ describe('Typography Parsing Tests', () => {
   describe('Android Compose Typography', () => {
     test('should generate valid Kotlin TextStyle definitions', () => {
       const result = generateAndroidTypography(mockStyles, 'com.example.theme');
-      
+
       expect(result).toContain('package com.example.theme');
       expect(result).toContain('import androidx.compose.ui.text.TextStyle');
       expect(result).toContain('val HeadlineLarge = TextStyle(');
@@ -175,36 +53,148 @@ describe('Typography Parsing Tests', () => {
 
     test('should work without package name', () => {
       const result = generateAndroidTypography(mockStyles, null);
-      
+
       expect(result).not.toContain('package');
       expect(result).toContain('val HeadlineLarge');
     });
   });
 
   describe('iOS Typography', () => {
-    test('should generate SwiftUI Font extensions', () => {
+    test('should generate SwiftUI Font extensions with custom font names preserved', () => {
       const result = generateIOSTypography(mockStyles, true);
-      
+
       expect(result).toContain('import SwiftUI');
       expect(result).toContain('extension Font {');
-      expect(result).toContain('static let headlineLarge = Font.system(size: 32, weight: .bold)');
+      expect(result).toContain('static let headlineLarge');
+      expect(result).toContain('.weight(.bold)');
+      // Custom font (Inter) should use Font.custom with exact name
+      expect(result).toContain('Font.custom("Inter"');
+    });
+
+    test('should use Font.system for system fonts', () => {
+      const systemFontStyles: TypographyStyle[] = [
+        { name: 'Title', fontFamily: 'SF Pro', fontSize: 20, fontWeight: 700, letterSpacing: 0, lineHeight: 24 }
+      ];
+
+      const result = generateIOSTypography(systemFontStyles, true);
+      expect(result).toContain('Font.system(size: 20, weight: .bold)');
+      expect(result).not.toContain('Font.custom');
+    });
+
+    test('should preserve spaces in custom font family names', () => {
+      const customFontStyles: TypographyStyle[] = [
+        { name: 'Body', fontFamily: 'Helvetica Neue', fontSize: 16, fontWeight: 400, letterSpacing: 0, lineHeight: 20 }
+      ];
+
+      const result = generateIOSTypography(customFontStyles, true);
+      expect(result).toContain('Font.custom("Helvetica Neue"');
     });
 
     test('should generate UIKit UIFont extensions', () => {
       const result = generateIOSTypography(mockStyles, false);
-      
+
       expect(result).toContain('import UIKit');
       expect(result).toContain('extension UIFont {');
+    });
+
+    test('should use UIFont(name:size:) for custom fonts in UIKit with fallback', () => {
+      const customFontStyles: TypographyStyle[] = [
+        { name: 'Body', fontFamily: 'Avenir Next', fontSize: 16, fontWeight: 400, letterSpacing: 0, lineHeight: 20 }
+      ];
+
+      const result = generateIOSTypography(customFontStyles, false);
+      expect(result).toContain('UIFont(name: "Avenir Next", size: 16)');
+      expect(result).toContain('?? UIFont.systemFont');
+    });
+
+    test('should use UIFont.systemFont for system fonts in UIKit', () => {
+      const systemFontStyles: TypographyStyle[] = [
+        { name: 'Title', fontFamily: 'SF Pro', fontSize: 20, fontWeight: 700, letterSpacing: 0, lineHeight: 24 }
+      ];
+
+      const result = generateIOSTypography(systemFontStyles, false);
+      expect(result).toContain('UIFont.systemFont(ofSize: 20, weight: .bold)');
+      expect(result).not.toContain('UIFont(name:');
     });
   });
 
   describe('Flutter Typography', () => {
     test('should generate valid Dart TextStyle class', () => {
       const result = generateFlutterTypography(mockStyles);
-      
+
       expect(result).toContain('import \'package:flutter/material.dart\';');
       expect(result).toContain('class AppTextStyles {');
       expect(result).toContain('static const TextStyle headlineLarge = TextStyle(');
+    });
+  });
+
+  describe('Android XML Typography', () => {
+    test('should generate valid XML styles with fontFamily', () => {
+      const result = generateAndroidTypographyXML(mockStyles);
+
+      expect(result).toContain('<?xml version="1.0" encoding="utf-8"?>');
+      expect(result).toContain('<resources>');
+      expect(result).toContain('<style name="TextAppearance.HeadlineLarge">');
+      expect(result).toContain('<item name="android:fontFamily">Inter</item>');
+      expect(result).toContain('<item name="android:textSize">32sp</item>');
+      expect(result).toContain('<item name="android:textFontWeight">700</item>');
+    });
+
+    test('should not include textFontWeight for regular (400) weight', () => {
+      const regularStyles: TypographyStyle[] = [
+        { name: 'Body', fontFamily: 'Roboto', fontSize: 14, fontWeight: 400, letterSpacing: 0, lineHeight: 20 }
+      ];
+
+      const result = generateAndroidTypographyXML(regularStyles);
+      expect(result).not.toContain('textFontWeight');
+    });
+
+    test('should convert letterSpacing to em units', () => {
+      const stylesWithLetterSpacing: TypographyStyle[] = [
+        { name: 'Spaced', fontFamily: 'Roboto', fontSize: 16, fontWeight: 400, letterSpacing: 0.5, lineHeight: 20 }
+      ];
+
+      const result = generateAndroidTypographyXML(stylesWithLetterSpacing);
+      // 0.5 / 16 = 0.03125
+      expect(result).toContain('android:letterSpacing');
+      expect(result).toContain('0.0313');
+    });
+  });
+
+  describe('Style Name Prefix Stripping', () => {
+    test('should strip "Font/" prefix from style names', () => {
+      const styles: TypographyStyle[] = [
+        { name: 'Font/Headline', fontFamily: 'Roboto', fontSize: 24, fontWeight: 700, letterSpacing: 0, lineHeight: 28 }
+      ];
+
+      const result = generateAndroidTypography(styles, null);
+      expect(result).toContain('val Headline');
+      expect(result).not.toMatch(/val Font/);
+    });
+
+    test('should NOT strip "Font" from names like "Fontana"', () => {
+      const styles: TypographyStyle[] = [
+        { name: 'Fontana', fontFamily: 'Roboto', fontSize: 16, fontWeight: 400, letterSpacing: 0, lineHeight: 20 }
+      ];
+
+      const result = generateFlutterTypography(styles);
+      expect(result).toContain('fontana');
+    });
+
+    test('should strip "Typography-" prefix but not "Typography" alone', () => {
+      const prefixedStyles: TypographyStyle[] = [
+        { name: 'Typography-Body', fontFamily: 'Roboto', fontSize: 14, fontWeight: 400, letterSpacing: 0, lineHeight: 20 }
+      ];
+
+      const result = generateIOSTypography(prefixedStyles, true);
+      expect(result).toContain('static let body');
+
+      const plainStyles: TypographyStyle[] = [
+        { name: 'Typography', fontFamily: 'Roboto', fontSize: 14, fontWeight: 400, letterSpacing: 0, lineHeight: 20 }
+      ];
+
+      const plainResult = generateIOSTypography(plainStyles, true);
+      expect(plainResult).toContain('typography');
     });
   });
 

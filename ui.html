@@ -4,511 +4,512 @@
 <head>
   <meta charset="utf-8">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      font-size: 13px;
-      line-height: 1.5;
-      color: #e4e4e7;
-      background: #09090b;
-      overflow-x: hidden;
-    }
-
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      background: #18181b;
-    }
-
-    /* Header */
-    .header {
-      background: linear-gradient(135deg, #4c1d95 0%, #6d28d9 50%, #7c3aed 100%);
-      color: white;
-      padding: 24px;
-      text-align: center;
-      border-bottom: 2px solid #a78bfa;
-    }
-
-    .header h1 {
-      font-size: 22px;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-
-    .header p {
-      font-size: 13px;
-      opacity: 0.95;
-    }
-
-    /* Sections */
-    .section {
-      padding: 20px 24px;
-      border-bottom: 1px solid #27272a;
-    }
-
-    .section-title {
-      font-size: 14px;
-      font-weight: 600;
-      margin-bottom: 14px;
-      color: #f4f4f5;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .section-title::before {
-      content: '';
-      width: 4px;
-      height: 18px;
-      background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
-      border-radius: 2px;
-    }
-
-    /* Stats Grid */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin-top: 14px;
-    }
-
-    .stat-card {
-      background: linear-gradient(135deg, #27272a 0%, #3f3f46 100%);
-      padding: 16px;
-      border-radius: 10px;
-      text-align: center;
-      border: 1px solid #3f3f46;
-    }
-
-    .stat-value {
-      font-size: 28px;
-      font-weight: 700;
-      background: linear-gradient(135deg, #a78bfa 0%, #c4b5fd 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      display: block;
-    }
-
-    .stat-label {
-      font-size: 11px;
-      color: #a1a1aa;
-      margin-top: 4px;
-      display: block;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    /* Export Types */
-    .export-types {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-    }
-
-    .export-type-btn {
-      padding: 14px;
-      border: 2px solid #3f3f46;
-      border-radius: 10px;
-      background: #27272a;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-align: center;
-      position: relative;
-    }
-
-    .export-type-btn:hover {
-      border-color: #7c3aed;
-      background: #3f3f46;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
-    }
-
-    .export-type-btn.active {
-      border-color: #7c3aed;
-      background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%);
-      color: white;
-      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.5);
-    }
-
-    .export-type-btn input[type="checkbox"] {
-      position: absolute;
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .export-type-icon {
-      font-size: 24px;
-      display: block;
-      margin-bottom: 6px;
-    }
-
-    .export-type-label {
-      font-weight: 600;
-      font-size: 12px;
-      display: block;
-    }
-
-    /* Platform Selection */
-    .platform-selection {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-
-    .platform-radio {
-      position: relative;
-    }
-
-    .platform-radio input[type="radio"] {
-      position: absolute;
-      opacity: 0;
-    }
-
-    .platform-radio label {
-      display: block;
-      padding: 16px;
-      border: 2px solid #3f3f46;
-      border-radius: 10px;
-      background: #27272a;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-align: center;
-      font-weight: 600;
-      font-size: 13px;
-      color: #e4e4e7;
-    }
-
-    .platform-radio input:checked+label {
-      border-color: #7c3aed;
-      background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%);
-      color: white;
-      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.5);
-    }
-
-    .platform-radio label:hover {
-      border-color: #7c3aed;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
-    }
-
-    /* Platform Config */
-    .platform-config {
-      display: none;
-      background: #27272a;
-      padding: 18px;
-      border-radius: 10px;
-      margin-top: 14px;
-      border: 1px solid #3f3f46;
-    }
-
-    .platform-config.active {
-      display: block;
-      animation: slideDown 0.3s ease;
-    }
-
-    @keyframes slideDown {
-      from {
-        opacity: 0;
-        transform: translateY(-10px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .config-section {
-      margin-bottom: 16px;
-      padding: 14px;
-      background: #18181b;
-      border-radius: 8px;
-      border: 1px solid #3f3f46;
-    }
-
-    .config-section:last-child {
-      margin-bottom: 0;
-    }
-
-    .config-section.hidden {
-      display: none;
-    }
-
-    .config-group {
-      margin-bottom: 12px;
-    }
-
-    .config-group:last-child {
-      margin-bottom: 0;
-    }
-
-    .config-label {
-      font-size: 12px;
-      font-weight: 600;
-      margin-bottom: 6px;
-      display: block;
-      color: #f4f4f5;
-    }
-
-    .config-sublabel {
-      font-size: 11px;
-      color: #a1a1aa;
-      margin-bottom: 8px;
-      display: block;
-    }
-
-    /* Format Selection */
-    .format-selection {
-      display: flex;
-      gap: 8px;
-      margin-top: 8px;
-    }
-
-    .format-btn {
-      flex: 1;
-      padding: 10px 14px;
-      border: 2px solid #3f3f46;
-      border-radius: 8px;
-      background: #27272a;
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: 600;
-      text-align: center;
-      transition: all 0.2s;
-      color: #e4e4e7;
-    }
-
-    .format-btn:hover {
-      border-color: #7c3aed;
-      background: #3f3f46;
-    }
-
-    .format-btn.active {
-      border-color: #7c3aed;
-      background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%);
-      color: white;
-    }
-
-    /* Input Fields */
-    input[type="text"],
-    input[type="password"],
-    textarea {
-      width: 100%;
-      padding: 11px 14px;
-      border: 2px solid #3f3f46;
-      border-radius: 8px;
-      font-size: 13px;
-      font-family: inherit;
-      transition: all 0.2s;
-      background: #09090b;
-      color: #e4e4e7;
-    }
-
-    input[type="text"]:focus,
-    input[type="password"]:focus,
-    textarea:focus {
-      outline: none;
-      border-color: #7c3aed;
-      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
-    }
-
-    input[type="text"]::placeholder,
-    input[type="password"]::placeholder,
-    textarea::placeholder {
-      color: #71717a;
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 70px;
-    }
-
-    /* Buttons */
-    .btn {
-      padding: 14px 22px;
-      border: none;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      width: 100%;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%);
-      color: white;
-      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
-    }
-
-    .btn-primary:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(124, 58, 237, 0.6);
-    }
-
-    .btn-secondary {
-      background: #27272a;
-      color: #e4e4e7;
-      border: 2px solid #3f3f46;
-    }
-
-    .btn-secondary:hover {
-      background: #3f3f46;
-      border-color: #7c3aed;
-    }
-
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none !important;
-    }
-
-    .btn-group {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 14px;
-    }
-
-    /* Messages */
-    .message {
-      padding: 14px 18px;
-      border-radius: 8px;
-      margin: 16px 24px;
-      font-size: 13px;
-      display: none;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      font-weight: 500;
-    }
-
-    .message.show {
-      display: block;
-      animation: slideDown 0.3s ease;
-    }
-
-    .message.success {
-      background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
-      color: #86efac;
-      border: 2px solid #10b981;
-    }
-
-    .message.error {
-      background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);
-      color: #fca5a5;
-      border: 2px solid #ef4444;
-    }
-
-    .message.info {
-      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
-      color: #93c5fd;
-      border: 2px solid #3b82f6;
-    }
-
-    /* Loading Spinner */
-    .spinner {
-      border: 3px solid rgba(255, 255, 255, 0.3);
-      border-top: 3px solid white;
-      border-radius: 50%;
-      width: 18px;
-      height: 18px;
-      animation: spin 0.8s linear infinite;
-      display: inline-block;
-      margin-right: 8px;
-      vertical-align: middle;
-    }
-
-    @keyframes spin {
-      0% {
-        transform: rotate(0deg);
-      }
-
-      100% {
-        transform: rotate(360deg);
-      }
-    }
-
-    /* Collapsible */
-    .collapsible-header {
-      cursor: pointer;
-      user-select: none;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 4px 0;
-    }
-
-    .collapsible-header::after {
-      content: '▼';
-      font-size: 11px;
-      transition: transform 0.2s;
-      color: #a78bfa;
-    }
-
-    .collapsible-header.collapsed::after {
-      transform: rotate(-90deg);
-    }
-
-    .collapsible-content {
-      max-height: 2000px;
-      overflow: hidden;
-      transition: max-height 0.3s ease;
-    }
-
-    .collapsible-content.collapsed {
-      max-height: 0;
-    }
-
-    /* Input Grid */
-    .input-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
-
-    .input-grid.full {
-      grid-template-columns: 1fr;
-    }
-
-    /* Section Headers */
-    .config-section-title {
-      font-size: 12px;
-      font-weight: 700;
-      color: #a78bfa;
-      margin-bottom: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    /* Scrollbar */
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: #18181b;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%);
-      border-radius: 4px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: linear-gradient(135deg, #5b21b6 0%, #8b5cf6 100%);
-    }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #e4e4e7;
+  background: #09090b;
+  overflow-x: hidden;
+}
+
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  background: #18181b;
+}
+
+/* Header */
+.header {
+  background: linear-gradient(135deg, #4c1d95 0%, #6d28d9 50%, #7c3aed 100%);
+  color: white;
+  padding: 24px;
+  text-align: center;
+  border-bottom: 2px solid #a78bfa;
+}
+
+.header h1 {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.header p {
+  font-size: 13px;
+  opacity: 0.95;
+}
+
+/* Sections */
+.section {
+  padding: 20px 24px;
+  border-bottom: 1px solid #27272a;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 14px;
+  color: #f4f4f5;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-title::before {
+  content: '';
+  width: 4px;
+  height: 18px;
+  background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+  border-radius: 2px;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.stat-card {
+  background: linear-gradient(135deg, #27272a 0%, #3f3f46 100%);
+  padding: 16px;
+  border-radius: 10px;
+  text-align: center;
+  border: 1px solid #3f3f46;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #a78bfa 0%, #c4b5fd 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: block;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: #a1a1aa;
+  margin-top: 4px;
+  display: block;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Export Types */
+.export-types {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.export-type-btn {
+  padding: 14px;
+  border: 2px solid #3f3f46;
+  border-radius: 10px;
+  background: #27272a;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  position: relative;
+}
+
+.export-type-btn:hover {
+  border-color: #7c3aed;
+  background: #3f3f46;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+
+.export-type-btn.active {
+  border-color: #7c3aed;
+  background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.5);
+}
+
+.export-type-btn input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.export-type-icon {
+  font-size: 24px;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.export-type-label {
+  font-weight: 600;
+  font-size: 12px;
+  display: block;
+}
+
+/* Platform Selection */
+.platform-selection {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.platform-radio {
+  position: relative;
+}
+
+.platform-radio input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+}
+
+.platform-radio label {
+  display: block;
+  padding: 16px;
+  border: 2px solid #3f3f46;
+  border-radius: 10px;
+  background: #27272a;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  font-weight: 600;
+  font-size: 13px;
+  color: #e4e4e7;
+}
+
+.platform-radio input:checked+label {
+  border-color: #7c3aed;
+  background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.5);
+}
+
+.platform-radio label:hover {
+  border-color: #7c3aed;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+
+/* Platform Config */
+.platform-config {
+  display: none;
+  background: #27272a;
+  padding: 18px;
+  border-radius: 10px;
+  margin-top: 14px;
+  border: 1px solid #3f3f46;
+}
+
+.platform-config.active {
+  display: block;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.config-section {
+  margin-bottom: 16px;
+  padding: 14px;
+  background: #18181b;
+  border-radius: 8px;
+  border: 1px solid #3f3f46;
+}
+
+.config-section:last-child {
+  margin-bottom: 0;
+}
+
+.config-section.hidden {
+  display: none;
+}
+
+.config-group {
+  margin-bottom: 12px;
+}
+
+.config-group:last-child {
+  margin-bottom: 0;
+}
+
+.config-label {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  display: block;
+  color: #f4f4f5;
+}
+
+.config-sublabel {
+  font-size: 11px;
+  color: #a1a1aa;
+  margin-bottom: 8px;
+  display: block;
+}
+
+/* Format Selection */
+.format-selection {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.format-btn {
+  flex: 1;
+  padding: 10px 14px;
+  border: 2px solid #3f3f46;
+  border-radius: 8px;
+  background: #27272a;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  transition: all 0.2s;
+  color: #e4e4e7;
+}
+
+.format-btn:hover {
+  border-color: #7c3aed;
+  background: #3f3f46;
+}
+
+.format-btn.active {
+  border-color: #7c3aed;
+  background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%);
+  color: white;
+}
+
+/* Input Fields */
+input[type="text"],
+input[type="password"],
+textarea {
+  width: 100%;
+  padding: 11px 14px;
+  border: 2px solid #3f3f46;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  transition: all 0.2s;
+  background: #09090b;
+  color: #e4e4e7;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus,
+textarea:focus {
+  outline: none;
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
+}
+
+input[type="text"]::placeholder,
+input[type="password"]::placeholder,
+textarea::placeholder {
+  color: #71717a;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 70px;
+}
+
+/* Buttons */
+.btn {
+  padding: 14px 22px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.6);
+}
+
+.btn-secondary {
+  background: #27272a;
+  color: #e4e4e7;
+  border: 2px solid #3f3f46;
+}
+
+.btn-secondary:hover {
+  background: #3f3f46;
+  border-color: #7c3aed;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.btn-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+/* Messages */
+.message {
+  padding: 14px 18px;
+  border-radius: 8px;
+  margin: 16px 24px;
+  font-size: 13px;
+  display: none;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  font-weight: 500;
+}
+
+.message.show {
+  display: block;
+  animation: slideDown 0.3s ease;
+}
+
+.message.success {
+  background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
+  color: #86efac;
+  border: 2px solid #10b981;
+}
+
+.message.error {
+  background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);
+  color: #fca5a5;
+  border: 2px solid #ef4444;
+}
+
+.message.info {
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+  color: #93c5fd;
+  border: 2px solid #3b82f6;
+}
+
+/* Loading Spinner */
+.spinner {
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top: 3px solid white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Collapsible */
+.collapsible-header {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.collapsible-header::after {
+  content: '▼';
+  font-size: 11px;
+  transition: transform 0.2s;
+  color: #a78bfa;
+}
+
+.collapsible-header.collapsed::after {
+  transform: rotate(-90deg);
+}
+
+.collapsible-content {
+  max-height: 2000px;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.collapsible-content.collapsed {
+  max-height: 0;
+}
+
+/* Input Grid */
+.input-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.input-grid.full {
+  grid-template-columns: 1fr;
+}
+
+/* Section Headers */
+.config-section-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #a78bfa;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #18181b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #5b21b6 0%, #8b5cf6 100%);
+}
+
   </style>
 </head>
 
@@ -723,7 +724,6 @@
       </button>
     </div>
 
-
     <!-- Step 4: Load & Stats -->
     <div class="section">
       <div class="section-title">📊 Variables & Styles</div>
@@ -758,420 +758,361 @@
   </div>
 
   <script>
-    const DEBUG_MODE = false;
+"use strict";
+(() => {
+  var __defProp = Object.defineProperty;
+  var __defProps = Object.defineProperties;
+  var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
+  var __getOwnPropSymbols = Object.getOwnPropertySymbols;
+  var __hasOwnProp = Object.prototype.hasOwnProperty;
+  var __propIsEnum = Object.prototype.propertyIsEnumerable;
+  var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+  var __spreadValues = (a, b) => {
+    for (var prop in b || (b = {}))
+      if (__hasOwnProp.call(b, prop))
+        __defNormalProp(a, prop, b[prop]);
+    if (__getOwnPropSymbols)
+      for (var prop of __getOwnPropSymbols(b)) {
+        if (__propIsEnum.call(b, prop))
+          __defNormalProp(a, prop, b[prop]);
+      }
+    return a;
+  };
+  var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
 
-    function log(message, type = 'info') {
-      if (!DEBUG_MODE) return;
-      console.log(`[${type}]`, message);
+  // src/ui/ui.ts
+  var DEBUG_MODE = false;
+  function log(message2, type = "info") {
+    if (!DEBUG_MODE) return;
+    console.log(`[${type}]`, message2);
+  }
+  var loadedData = null;
+  var settings = {};
+  var message = document.getElementById("message");
+  var statsGrid = document.getElementById("statsGrid");
+  var exportBtn = document.getElementById("exportBtn");
+  function updateVisibleSections() {
+    const exportStrings = document.getElementById("exportStrings").checked;
+    const exportColors = document.getElementById("exportColors").checked;
+    const exportFonts = document.getElementById("exportFonts").checked;
+    document.getElementById("androidStringsSection").classList.toggle("hidden", !exportStrings);
+    document.getElementById("androidColorsSection").classList.toggle("hidden", !exportColors);
+    document.getElementById("androidTypographySection").classList.toggle("hidden", !exportFonts);
+    document.getElementById("iosStringsSection").classList.toggle("hidden", !exportStrings);
+    document.getElementById("iosColorsSection").classList.toggle("hidden", !exportColors);
+    document.getElementById("iosTypographySection").classList.toggle("hidden", !exportFonts);
+    document.getElementById("flutterStringsSection").classList.toggle("hidden", !exportStrings);
+    document.getElementById("flutterColorsSection").classList.toggle("hidden", !exportColors);
+    document.getElementById("flutterTypographySection").classList.toggle("hidden", !exportFonts);
+  }
+  var platformRadios = document.querySelectorAll('input[name="platform"]');
+  var androidConfig = document.getElementById("androidConfig");
+  var iosConfig = document.getElementById("iosConfig");
+  var flutterConfig = document.getElementById("flutterConfig");
+  platformRadios.forEach((radio) => {
+    radio.addEventListener("change", () => {
+      androidConfig.classList.remove("active");
+      iosConfig.classList.remove("active");
+      flutterConfig.classList.remove("active");
+      if (radio.value === "android") androidConfig.classList.add("active");
+      else if (radio.value === "ios") iosConfig.classList.add("active");
+      else if (radio.value === "flutter") flutterConfig.classList.add("active");
+    });
+  });
+  var exportTypeBtns = document.querySelectorAll(".export-type-btn");
+  exportTypeBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const checkbox = btn.querySelector('input[type="checkbox"]');
+      checkbox.checked = !checkbox.checked;
+      btn.classList.toggle("active", checkbox.checked);
+      updateVisibleSections();
+    });
+  });
+  var colorFormatBtns = document.querySelectorAll("#androidColorFormatBtns .format-btn");
+  var colorsXmlGroup = document.getElementById("androidColorsXmlGroup");
+  var composeColorsGroup = document.getElementById("androidComposeColorsGroup");
+  var composePackageGroup = document.getElementById("androidComposePackageGroup");
+  colorFormatBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      colorFormatBtns.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      const format = btn.dataset.format;
+      if (format === "xml") {
+        colorsXmlGroup.style.display = "block";
+        composeColorsGroup.style.display = "none";
+        composePackageGroup.style.display = "none";
+      } else if (format === "compose") {
+        colorsXmlGroup.style.display = "none";
+        composeColorsGroup.style.display = "block";
+        composePackageGroup.style.display = "block";
+      } else if (format === "both") {
+        colorsXmlGroup.style.display = "block";
+        composeColorsGroup.style.display = "block";
+        composePackageGroup.style.display = "block";
+      }
+    });
+  });
+  var typographyFormatBtns = document.querySelectorAll("#androidTypographyFormatBtns .format-btn");
+  var typographyXmlGroup = document.getElementById("androidTypographyXmlGroup");
+  var typographyComposeGroup = document.getElementById("androidTypographyComposeGroup");
+  typographyFormatBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      typographyFormatBtns.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      const format = btn.dataset.format;
+      if (format === "xml") {
+        typographyXmlGroup.style.display = "block";
+        typographyComposeGroup.style.display = "none";
+      } else if (format === "compose") {
+        typographyXmlGroup.style.display = "none";
+        typographyComposeGroup.style.display = "block";
+      } else if (format === "both") {
+        typographyXmlGroup.style.display = "block";
+        typographyComposeGroup.style.display = "block";
+      }
+    });
+  });
+  var iosColorStyleBtns = document.querySelectorAll("#iosColorStyleBtns .format-btn");
+  iosColorStyleBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      iosColorStyleBtns.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+    });
+  });
+  function showMessage(text, type = "info") {
+    message.textContent = text;
+    message.className = `message ${type} show`;
+    setTimeout(() => message.classList.remove("show"), 5e3);
+  }
+  var githubHeader = document.getElementById("githubHeader");
+  var githubContent = document.getElementById("githubContent");
+  githubHeader.addEventListener("click", () => {
+    githubHeader.classList.toggle("collapsed");
+    githubContent.classList.toggle("collapsed");
+  });
+  document.getElementById("testBtn").addEventListener("click", () => {
+    const username = document.getElementById("username").value.trim();
+    const repo = document.getElementById("repo").value.trim();
+    const token = document.getElementById("token").value.trim();
+    if (!username || !repo || !token) {
+      showMessage("Please fill in all GitHub settings", "error");
+      return;
     }
-
-    let loadedData = null;
-    let settings = {};
-
-    const message = document.getElementById('message');
-    const statsGrid = document.getElementById('statsGrid');
-    const exportBtn = document.getElementById('exportBtn');
-
-    function updateVisibleSections() {
-      const exportStrings = document.getElementById('exportStrings').checked;
-      const exportColors = document.getElementById('exportColors').checked;
-      const exportFonts = document.getElementById('exportFonts').checked;
-
-      document.getElementById('androidStringsSection').classList.toggle('hidden', !exportStrings);
-      document.getElementById('androidColorsSection').classList.toggle('hidden', !exportColors);
-      document.getElementById('androidTypographySection').classList.toggle('hidden', !exportFonts);
-
-      document.getElementById('iosStringsSection').classList.toggle('hidden', !exportStrings);
-      document.getElementById('iosColorsSection').classList.toggle('hidden', !exportColors);
-      document.getElementById('iosTypographySection').classList.toggle('hidden', !exportFonts);
-
-      document.getElementById('flutterStringsSection').classList.toggle('hidden', !exportStrings);
-      document.getElementById('flutterColorsSection').classList.toggle('hidden', !exportColors);
-      document.getElementById('flutterTypographySection').classList.toggle('hidden', !exportFonts);
+    showMessage("Testing connection...", "info");
+    parent.postMessage({ pluginMessage: { type: "test-github", settings: { username, repo, token } } }, "*");
+  });
+  document.getElementById("saveBtn").addEventListener("click", () => {
+    const username = document.getElementById("username").value.trim();
+    const repo = document.getElementById("repo").value.trim();
+    const baseBranch = document.getElementById("baseBranch").value.trim();
+    const token = document.getElementById("token").value.trim();
+    if (!username || !repo || !baseBranch || !token) {
+      showMessage("Please fill in all required fields", "error");
+      return;
     }
-
-    const platformRadios = document.querySelectorAll('input[name="platform"]');
-    const androidConfig = document.getElementById('androidConfig');
-    const iosConfig = document.getElementById('iosConfig');
-    const flutterConfig = document.getElementById('flutterConfig');
-
-    platformRadios.forEach(radio => {
-      radio.addEventListener('change', () => {
-        androidConfig.classList.remove('active');
-        iosConfig.classList.remove('active');
-        flutterConfig.classList.remove('active');
-
-        if (radio.value === 'android') androidConfig.classList.add('active');
-        else if (radio.value === 'ios') iosConfig.classList.add('active');
-        else if (radio.value === 'flutter') flutterConfig.classList.add('active');
-      });
-    });
-
-    const exportTypeBtns = document.querySelectorAll('.export-type-btn');
-    exportTypeBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const checkbox = btn.querySelector('input[type="checkbox"]');
-        checkbox.checked = !checkbox.checked;
-        btn.classList.toggle('active', checkbox.checked);
-        updateVisibleSections();
-      });
-    });
-
-    const colorFormatBtns = document.querySelectorAll('#androidColorFormatBtns .format-btn');
-    const colorsXmlGroup = document.getElementById('androidColorsXmlGroup');
-    const composeColorsGroup = document.getElementById('androidComposeColorsGroup');
-    const composePackageGroup = document.getElementById('androidComposePackageGroup');
-
-    colorFormatBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        colorFormatBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-
-        const format = btn.dataset.format;
-        if (format === 'xml') {
-          colorsXmlGroup.style.display = 'block';
-          composeColorsGroup.style.display = 'none';
-          composePackageGroup.style.display = 'none';
-        } else if (format === 'compose') {
-          colorsXmlGroup.style.display = 'none';
-          composeColorsGroup.style.display = 'block';
-          composePackageGroup.style.display = 'block';
-        } else if (format === 'both') {
-          colorsXmlGroup.style.display = 'block';
-          composeColorsGroup.style.display = 'block';
-          composePackageGroup.style.display = 'block';
-        }
-      });
-    });
-
-    const typographyFormatBtns = document.querySelectorAll('#androidTypographyFormatBtns .format-btn');
-    const typographyXmlGroup = document.getElementById('androidTypographyXmlGroup');
-    const typographyComposeGroup = document.getElementById('androidTypographyComposeGroup');
-
-    typographyFormatBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        typographyFormatBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-
-        const format = btn.dataset.format;
-        if (format === 'xml') {
-          typographyXmlGroup.style.display = 'block';
-          typographyComposeGroup.style.display = 'none';
-        } else if (format === 'compose') {
-          typographyXmlGroup.style.display = 'none';
-          typographyComposeGroup.style.display = 'block';
-        } else if (format === 'both') {
-          typographyXmlGroup.style.display = 'block';
-          typographyComposeGroup.style.display = 'block';
-        }
-      });
-    });
-
-    const iosColorStyleBtns = document.querySelectorAll('#iosColorStyleBtns .format-btn');
-    iosColorStyleBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        iosColorStyleBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-      });
-    });
-
-    function showMessage(text, type = 'info') {
-      message.textContent = text;
-      message.className = `message ${type} show`;
-      setTimeout(() => message.classList.remove('show'), 5000);
+    settings = { username, repo, baseBranch, token };
+    parent.postMessage({ pluginMessage: { type: "save-settings", settings } }, "*");
+    showMessage("Settings saved!", "success");
+  });
+  document.getElementById("loadBtn").addEventListener("click", () => {
+    showMessage("Loading variables from Figma...", "info");
+    parent.postMessage({ pluginMessage: { type: "export-variables" } }, "*");
+  });
+  document.getElementById("exportBtn").addEventListener("click", () => {
+    if (!loadedData) {
+      showMessage("Please load variables first", "error");
+      return;
     }
-
-    const githubHeader = document.getElementById('githubHeader');
-    const githubContent = document.getElementById('githubContent');
-
-    githubHeader.addEventListener('click', () => {
-      githubHeader.classList.toggle('collapsed');
-      githubContent.classList.toggle('collapsed');
-    });
-
-    document.getElementById('testBtn').addEventListener('click', () => {
-      const username = document.getElementById('username').value.trim();
-      const repo = document.getElementById('repo').value.trim();
-      const token = document.getElementById('token').value.trim();
-
-      if (!username || !repo || !token) {
-        showMessage('Please fill in all GitHub settings', 'error');
-        return;
-      }
-
-      showMessage('Testing connection...', 'info');
-      parent.postMessage({ pluginMessage: { type: 'test-github', settings: { username, repo, token } } }, '*');
-    });
-
-    document.getElementById('saveBtn').addEventListener('click', () => {
-      const username = document.getElementById('username').value.trim();
-      const repo = document.getElementById('repo').value.trim();
-      const baseBranch = document.getElementById('baseBranch').value.trim();
-      const token = document.getElementById('token').value.trim();
-
-      if (!username || !repo || !baseBranch || !token) {
-        showMessage('Please fill in all required fields', 'error');
-        return;
-      }
-
-      settings = { username, repo, baseBranch, token };
-      parent.postMessage({ pluginMessage: { type: 'save-settings', settings: settings } }, '*');
-      showMessage('Settings saved!', 'success');
-    });
-
-    document.getElementById('loadBtn').addEventListener('click', () => {
-      showMessage('Loading variables from Figma...', 'info');
-      parent.postMessage({ pluginMessage: { type: 'export-variables' } }, '*');
-    });
-
-    document.getElementById('exportBtn').addEventListener('click', () => {
-      if (!loadedData) {
-        showMessage('Please load variables first', 'error');
-        return;
-      }
-
-      const exportTypes = {
-        strings: document.getElementById('exportStrings').checked,
-        colors: document.getElementById('exportColors').checked,
-        fonts: document.getElementById('exportFonts').checked
-      };
-
-      if (!exportTypes.strings && !exportTypes.colors && !exportTypes.fonts) {
-        showMessage('Please select at least one export type', 'error');
-        return;
-      }
-
-      const selectedPlatform = document.querySelector('input[name="platform"]:checked').value;
-      const platforms = {
-        android: selectedPlatform === 'android',
-        ios: selectedPlatform === 'ios',
-        flutter: selectedPlatform === 'flutter'
-      };
-
-      const androidColorFormat = document.querySelector('#androidColorFormatBtns .format-btn.active').dataset.format;
-      const androidTypographyFormat = document.querySelector('#androidTypographyFormatBtns .format-btn.active').dataset.format;
-      const iosColorStyle = document.querySelector('#iosColorStyleBtns .format-btn.active').dataset.format;
-
-      const filePaths = {
-        androidStrings: document.getElementById('androidStrings').value,
-        androidColorsXml: document.getElementById('androidColorsXml').value,
-        androidComposeColors: document.getElementById('androidComposeColors').value,
-        androidComposePackage: document.getElementById('androidComposePackage').value,
-        androidTypographyXml: document.getElementById('androidTypographyXml').value,
-        androidTypography: document.getElementById('androidTypography').value,
-        androidColorFormat: androidColorFormat,
-        androidTypographyFormat: androidTypographyFormat,
-
-        iosStrings: document.getElementById('iosStrings').value,
-        iosColors: document.getElementById('iosColors').value,
-        iosTypography: document.getElementById('iosTypography').value,
-        iosColorStyle: iosColorStyle,
-
-        flutterStrings: document.getElementById('flutterStrings').value,
-        flutterColors: document.getElementById('flutterColors').value,
-        flutterTypography: document.getElementById('flutterTypography').value
-      };
-
-      const commitMessage = document.getElementById('commitMessage').value.trim();
-
-      showMessage('Creating pull request...', 'info');
-      exportBtn.disabled = true;
-      document.getElementById('exportBtnText').innerHTML = '<span class="spinner"></span> Exporting...';
-
-      parent.postMessage({
-        pluginMessage: {
-          type: 'upload-github',
-          data: {
-            ...settings,
-            commitMessage: commitMessage || '🎨 Update design tokens from Figma',
-            variablesData: loadedData,
-            exportTypes: exportTypes,
-            platforms: platforms,
-            filePaths: filePaths,
-            branchName: 'design-tokens',
-            prTitle: '🎨 Update Design Tokens from Figma',
-            prTemplate: 'detailed'
-          }
-        }
-      }, '*');
-    });
-
-    window.onmessage = (event) => {
-      const msg = event.data.pluginMessage;
-      if (!msg) return;
-
-      log('Received message:', msg.type);
-
-      if (msg.type === 'load-settings') {
-        if (msg.settings) {
-          document.getElementById('username').value = msg.settings.username || '';
-          document.getElementById('repo').value = msg.settings.repo || '';
-          document.getElementById('baseBranch').value = msg.settings.baseBranch || 'main';
-          document.getElementById('token').value = msg.settings.token || '';
-          settings = msg.settings;
-        }
-      }
-
-      // Load saved configuration
-      if (msg.type === 'load-config') {
-        if (msg.config) {
-          const config = msg.config;
-
-          // Set platform
-          if (config.selectedPlatform) {
-            document.getElementById('platform' + config.selectedPlatform.charAt(0).toUpperCase() + config.selectedPlatform.slice(1)).checked = true;
-            // Trigger change event
-            document.querySelector('input[name="platform"]:checked').dispatchEvent(new Event('change'));
-          }
-
-          // Set export types
-          if (config.exportTypes) {
-            document.getElementById('exportStrings').checked = config.exportTypes.strings !== false;
-            document.getElementById('exportColors').checked = config.exportTypes.colors !== false;
-            document.getElementById('exportFonts').checked = config.exportTypes.fonts !== false;
-
-            // Update UI
-            exportTypeBtns.forEach(btn => {
-              const checkbox = btn.querySelector('input[type="checkbox"]');
-              btn.classList.toggle('active', checkbox.checked);
-            });
-            updateVisibleSections();
-          }
-
-          // Android paths
-          if (config.androidStrings) document.getElementById('androidStrings').value = config.androidStrings;
-          if (config.androidColorsXml) document.getElementById('androidColorsXml').value = config.androidColorsXml;
-          if (config.androidComposeColors) document.getElementById('androidComposeColors').value = config.androidComposeColors;
-          if (config.androidComposePackage) document.getElementById('androidComposePackage').value = config.androidComposePackage;
-          if (config.androidTypographyXml) document.getElementById('androidTypographyXml').value = config.androidTypographyXml;
-          if (config.androidTypography) document.getElementById('androidTypography').value = config.androidTypography;
-
-          // Android formats
-          if (config.androidColorFormat) {
-            colorFormatBtns.forEach(btn => {
-              if (btn.dataset.format === config.androidColorFormat) {
-                btn.click();
-              }
-            });
-          }
-          if (config.androidTypographyFormat) {
-            typographyFormatBtns.forEach(btn => {
-              if (btn.dataset.format === config.androidTypographyFormat) {
-                btn.click();
-              }
-            });
-          }
-
-          // iOS paths
-          if (config.iosStrings) document.getElementById('iosStrings').value = config.iosStrings;
-          if (config.iosColors) document.getElementById('iosColors').value = config.iosColors;
-          if (config.iosTypography) document.getElementById('iosTypography').value = config.iosTypography;
-
-          // iOS format
-          if (config.iosColorStyle) {
-            iosColorStyleBtns.forEach(btn => {
-              if (btn.dataset.format === config.iosColorStyle) {
-                btn.click();
-              }
-            });
-          }
-
-          // Flutter paths
-          if (config.flutterStrings) document.getElementById('flutterStrings').value = config.flutterStrings;
-          if (config.flutterColors) document.getElementById('flutterColors').value = config.flutterColors;
-          if (config.flutterTypography) document.getElementById('flutterTypography').value = config.flutterTypography;
-
-          log('Configuration loaded successfully');
-        }
-      }
-
-      if (msg.type === 'test-success') showMessage(`✅ Connected to ${msg.data.fullName}`, 'success');
-      if (msg.type === 'test-error') showMessage(`❌ ${msg.message}`, 'error');
-
-      if (msg.type === 'variables-data') {
-        loadedData = msg.data;
-        document.getElementById('statStrings').textContent = msg.stats.strings || 0;
-        document.getElementById('statColors').textContent = msg.stats.colors || 0;
-        document.getElementById('statFonts').textContent = msg.stats.fonts || 0;
-        statsGrid.style.display = 'grid';
-        exportBtn.disabled = false;
-        showMessage(`✅ Loaded ${msg.stats.strings} strings, ${msg.stats.colors} colors, ${msg.stats.fonts} fonts`, 'success');
-      }
-
-      if (msg.type === 'upload-success') {
-        const prUrl = msg.prUrl || 'Successfully created';
-        showMessage(`✅ PR created: ${prUrl}`, 'success');
-        exportBtn.disabled = false;
-        document.getElementById('exportBtnText').textContent = '📤 Export to GitHub';
-      }
-
-
-      if (msg.type === 'error') {
-        showMessage(`❌ ${msg.message}`, 'error');
-        exportBtn.disabled = false;
-        document.getElementById('exportBtnText').textContent = '📤 Export to GitHub';
-      }
+    const exportTypes = {
+      strings: document.getElementById("exportStrings").checked,
+      colors: document.getElementById("exportColors").checked,
+      fonts: document.getElementById("exportFonts").checked
     };
-
-    // Save Configuration (Platform, Paths, Formats)
-    document.getElementById('saveConfigBtn').addEventListener('click', () => {
-      const selectedPlatform = document.querySelector('input[name="platform"]:checked').value;
-
-      const exportTypes = {
-        strings: document.getElementById('exportStrings').checked,
-        colors: document.getElementById('exportColors').checked,
-        fonts: document.getElementById('exportFonts').checked
-      };
-
-      const androidColorFormat = document.querySelector('#androidColorFormatBtns .format-btn.active')?.dataset.format || 'xml';
-      const androidTypographyFormat = document.querySelector('#androidTypographyFormatBtns .format-btn.active')?.dataset.format || 'xml';
-      const iosColorStyle = document.querySelector('#iosColorStyleBtns .format-btn.active')?.dataset.format || 'swiftui';
-
-      const config = {
-        selectedPlatform: selectedPlatform,
-        exportTypes: exportTypes,
-
-        // Android paths and formats
-        androidStrings: document.getElementById('androidStrings').value,
-        androidColorsXml: document.getElementById('androidColorsXml').value,
-        androidComposeColors: document.getElementById('androidComposeColors').value,
-        androidComposePackage: document.getElementById('androidComposePackage').value,
-        androidTypographyXml: document.getElementById('androidTypographyXml').value,
-        androidTypography: document.getElementById('androidTypography').value,
-        androidColorFormat: androidColorFormat,
-        androidTypographyFormat: androidTypographyFormat,
-
-        // iOS paths and formats
-        iosStrings: document.getElementById('iosStrings').value,
-        iosColors: document.getElementById('iosColors').value,
-        iosTypography: document.getElementById('iosTypography').value,
-        iosColorStyle: iosColorStyle,
-
-        // Flutter paths
-        flutterStrings: document.getElementById('flutterStrings').value,
-        flutterColors: document.getElementById('flutterColors').value,
-        flutterTypography: document.getElementById('flutterTypography').value
-      };
-
-      parent.postMessage({
-        pluginMessage: {
-          type: 'save-config',
-          config: config
+    if (!exportTypes.strings && !exportTypes.colors && !exportTypes.fonts) {
+      showMessage("Please select at least one export type", "error");
+      return;
+    }
+    const selectedPlatform = document.querySelector('input[name="platform"]:checked').value;
+    const platforms = {
+      android: selectedPlatform === "android",
+      ios: selectedPlatform === "ios",
+      flutter: selectedPlatform === "flutter"
+    };
+    const androidColorFormat = document.querySelector("#androidColorFormatBtns .format-btn.active").dataset.format;
+    const androidTypographyFormat = document.querySelector("#androidTypographyFormatBtns .format-btn.active").dataset.format;
+    const iosColorStyle = document.querySelector("#iosColorStyleBtns .format-btn.active").dataset.format;
+    const filePaths = {
+      androidStrings: document.getElementById("androidStrings").value,
+      androidColorsXml: document.getElementById("androidColorsXml").value,
+      androidComposeColors: document.getElementById("androidComposeColors").value,
+      androidComposePackage: document.getElementById("androidComposePackage").value,
+      androidTypographyXml: document.getElementById("androidTypographyXml").value,
+      androidTypography: document.getElementById("androidTypography").value,
+      androidColorFormat,
+      androidTypographyFormat,
+      iosStrings: document.getElementById("iosStrings").value,
+      iosColors: document.getElementById("iosColors").value,
+      iosTypography: document.getElementById("iosTypography").value,
+      iosColorStyle,
+      flutterStrings: document.getElementById("flutterStrings").value,
+      flutterColors: document.getElementById("flutterColors").value,
+      flutterTypography: document.getElementById("flutterTypography").value
+    };
+    const commitMessage = document.getElementById("commitMessage").value.trim();
+    showMessage("Creating pull request...", "info");
+    exportBtn.disabled = true;
+    document.getElementById("exportBtnText").innerHTML = '<span class="spinner"></span> Exporting...';
+    parent.postMessage({
+      pluginMessage: {
+        type: "upload-github",
+        data: __spreadProps(__spreadValues({}, settings), {
+          commitMessage: commitMessage || "\u{1F3A8} Update design tokens from Figma",
+          variablesData: loadedData,
+          exportTypes,
+          platforms,
+          filePaths,
+          branchName: "design-tokens",
+          prTitle: "\u{1F3A8} Update Design Tokens from Figma",
+          prTemplate: "detailed"
+        })
+      }
+    }, "*");
+  });
+  window.onmessage = (event) => {
+    const msg = event.data.pluginMessage;
+    if (!msg) return;
+    log("Received message:", msg.type);
+    if (msg.type === "load-settings") {
+      if (msg.settings) {
+        document.getElementById("username").value = msg.settings.username || "";
+        document.getElementById("repo").value = msg.settings.repo || "";
+        document.getElementById("baseBranch").value = msg.settings.baseBranch || "main";
+        document.getElementById("token").value = msg.settings.token || "";
+        settings = msg.settings;
+      }
+    }
+    if (msg.type === "load-config") {
+      if (msg.config) {
+        const config = msg.config;
+        if (config.selectedPlatform) {
+          document.getElementById("platform" + config.selectedPlatform.charAt(0).toUpperCase() + config.selectedPlatform.slice(1)).checked = true;
+          document.querySelector('input[name="platform"]:checked').dispatchEvent(new Event("change"));
         }
-      }, '*');
+        if (config.exportTypes) {
+          document.getElementById("exportStrings").checked = config.exportTypes.strings !== false;
+          document.getElementById("exportColors").checked = config.exportTypes.colors !== false;
+          document.getElementById("exportFonts").checked = config.exportTypes.fonts !== false;
+          exportTypeBtns.forEach((btn) => {
+            const checkbox = btn.querySelector('input[type="checkbox"]');
+            btn.classList.toggle("active", checkbox.checked);
+          });
+          updateVisibleSections();
+        }
+        if (config.androidStrings) document.getElementById("androidStrings").value = config.androidStrings;
+        if (config.androidColorsXml) document.getElementById("androidColorsXml").value = config.androidColorsXml;
+        if (config.androidComposeColors) document.getElementById("androidComposeColors").value = config.androidComposeColors;
+        if (config.androidComposePackage) document.getElementById("androidComposePackage").value = config.androidComposePackage;
+        if (config.androidTypographyXml) document.getElementById("androidTypographyXml").value = config.androidTypographyXml;
+        if (config.androidTypography) document.getElementById("androidTypography").value = config.androidTypography;
+        if (config.androidColorFormat) {
+          colorFormatBtns.forEach((btn) => {
+            if (btn.dataset.format === config.androidColorFormat) {
+              btn.click();
+            }
+          });
+        }
+        if (config.androidTypographyFormat) {
+          typographyFormatBtns.forEach((btn) => {
+            if (btn.dataset.format === config.androidTypographyFormat) {
+              btn.click();
+            }
+          });
+        }
+        if (config.iosStrings) document.getElementById("iosStrings").value = config.iosStrings;
+        if (config.iosColors) document.getElementById("iosColors").value = config.iosColors;
+        if (config.iosTypography) document.getElementById("iosTypography").value = config.iosTypography;
+        if (config.iosColorStyle) {
+          iosColorStyleBtns.forEach((btn) => {
+            if (btn.dataset.format === config.iosColorStyle) {
+              btn.click();
+            }
+          });
+        }
+        if (config.flutterStrings) document.getElementById("flutterStrings").value = config.flutterStrings;
+        if (config.flutterColors) document.getElementById("flutterColors").value = config.flutterColors;
+        if (config.flutterTypography) document.getElementById("flutterTypography").value = config.flutterTypography;
+        log("Configuration loaded successfully");
+      }
+    }
+    if (msg.type === "test-success") showMessage(`\u2705 Connected to ${msg.data.fullName}`, "success");
+    if (msg.type === "test-error") showMessage(`\u274C ${msg.message}`, "error");
+    if (msg.type === "variables-data") {
+      loadedData = msg.data;
+      document.getElementById("statStrings").textContent = msg.stats.strings || 0;
+      document.getElementById("statColors").textContent = msg.stats.colors || 0;
+      document.getElementById("statFonts").textContent = msg.stats.fonts || 0;
+      statsGrid.style.display = "grid";
+      exportBtn.disabled = false;
+      showMessage(`\u2705 Loaded ${msg.stats.strings} strings, ${msg.stats.colors} colors, ${msg.stats.fonts} fonts`, "success");
+    }
+    if (msg.type === "upload-success") {
+      const prUrl = msg.prUrl || "Successfully created";
+      showMessage(`\u2705 PR created: ${prUrl}`, "success");
+      exportBtn.disabled = false;
+      document.getElementById("exportBtnText").textContent = "\u{1F4E4} Export to GitHub";
+    }
+    if (msg.type === "error") {
+      showMessage(`\u274C ${msg.message}`, "error");
+      exportBtn.disabled = false;
+      document.getElementById("exportBtnText").textContent = "\u{1F4E4} Export to GitHub";
+    }
+  };
+  document.getElementById("saveConfigBtn").addEventListener("click", () => {
+    var _a, _b, _c;
+    const selectedPlatform = document.querySelector('input[name="platform"]:checked').value;
+    const exportTypes = {
+      strings: document.getElementById("exportStrings").checked,
+      colors: document.getElementById("exportColors").checked,
+      fonts: document.getElementById("exportFonts").checked
+    };
+    const androidColorFormat = ((_a = document.querySelector("#androidColorFormatBtns .format-btn.active")) == null ? void 0 : _a.dataset.format) || "xml";
+    const androidTypographyFormat = ((_b = document.querySelector("#androidTypographyFormatBtns .format-btn.active")) == null ? void 0 : _b.dataset.format) || "xml";
+    const iosColorStyle = ((_c = document.querySelector("#iosColorStyleBtns .format-btn.active")) == null ? void 0 : _c.dataset.format) || "swiftui";
+    const config = {
+      selectedPlatform,
+      exportTypes,
+      androidStrings: document.getElementById("androidStrings").value,
+      androidColorsXml: document.getElementById("androidColorsXml").value,
+      androidComposeColors: document.getElementById("androidComposeColors").value,
+      androidComposePackage: document.getElementById("androidComposePackage").value,
+      androidTypographyXml: document.getElementById("androidTypographyXml").value,
+      androidTypography: document.getElementById("androidTypography").value,
+      androidColorFormat,
+      androidTypographyFormat,
+      iosStrings: document.getElementById("iosStrings").value,
+      iosColors: document.getElementById("iosColors").value,
+      iosTypography: document.getElementById("iosTypography").value,
+      iosColorStyle,
+      flutterStrings: document.getElementById("flutterStrings").value,
+      flutterColors: document.getElementById("flutterColors").value,
+      flutterTypography: document.getElementById("flutterTypography").value
+    };
+    parent.postMessage({
+      pluginMessage: {
+        type: "save-config",
+        config
+      }
+    }, "*");
+    showMessage("\u2705 Configuration saved successfully!", "success");
+  });
+  window.addEventListener("DOMContentLoaded", () => {
+    parent.postMessage({
+      pluginMessage: { type: "load-config" }
+    }, "*");
+  });
+  updateVisibleSections();
+})();
 
-      showMessage('✅ Configuration saved successfully!', 'success');
-    });
-
-    // Load configuration on startup
-    window.addEventListener('DOMContentLoaded', () => {
-      parent.postMessage({
-        pluginMessage: { type: 'load-config' }
-      }, '*');
-    });
-
-
-    updateVisibleSections();
   </script>
 </body>
 
