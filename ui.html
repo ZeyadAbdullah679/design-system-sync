@@ -111,7 +111,8 @@ body {
   gap: 10px;
 }
 
-.export-type-btn {
+.export-type-btn,
+.platform-btn {
   padding: 14px;
   border: 2px solid #3f3f46;
   border-radius: 10px;
@@ -122,21 +123,24 @@ body {
   position: relative;
 }
 
-.export-type-btn:hover {
+.export-type-btn:hover,
+.platform-btn:hover {
   border-color: #7c3aed;
   background: #3f3f46;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
 }
 
-.export-type-btn.active {
+.export-type-btn.active,
+.platform-btn.active {
   border-color: #7c3aed;
   background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%);
   color: white;
   box-shadow: 0 4px 12px rgba(124, 58, 237, 0.5);
 }
 
-.export-type-btn input[type="checkbox"] {
+.export-type-btn input[type="checkbox"],
+.platform-btn input[type="checkbox"] {
   position: absolute;
   opacity: 0;
   pointer-events: none;
@@ -547,17 +551,17 @@ textarea {
     <div class="section">
       <div class="section-title">📱 Select Platform</div>
       <div class="platform-selection">
-        <div class="export-type-btn active" data-platform="android">
+        <div class="platform-btn active" data-platform="android">
           <input type="checkbox" id="platformAndroid" checked>
           <span class="export-type-icon">🤖</span>
           <span class="export-type-label">Android/KMP</span>
         </div>
-        <div class="export-type-btn" data-platform="ios">
+        <div class="platform-btn" data-platform="ios">
           <input type="checkbox" id="platformIOS">
           <span class="export-type-icon">🍎</span>
           <span class="export-type-label">iOS</span>
         </div>
-        <div class="export-type-btn" data-platform="flutter">
+        <div class="platform-btn" data-platform="flutter">
           <input type="checkbox" id="platformFlutter">
           <span class="export-type-icon">🦋</span>
           <span class="export-type-label">Flutter</span>
@@ -587,10 +591,12 @@ textarea {
           </div>
           <div class="config-group" id="androidColorsXmlGroup">
             <label class="config-label">Colors XML Path</label>
+            <span class="config-sublabel">Use {mode} for light/dark theme variants</span>
             <input type="text" id="androidColorsXml" value="shared/src/commonMain/composeResources/values/colors.xml">
           </div>
           <div class="config-group" id="androidComposeColorsGroup" style="display: none;">
             <label class="config-label">Compose Color.kt Path</label>
+            <span class="config-sublabel">Use {mode} for light/dark theme variants</span>
             <input type="text" id="androidComposeColors" value="shared/src/commonMain/kotlin/theme/Color.kt">
           </div>
           <div class="config-group" id="androidComposePackageGroup" style="display: none;">
@@ -644,6 +650,7 @@ textarea {
           </div>
           <div class="config-group">
             <label class="config-label">Colors.swift Path</label>
+            <span class="config-sublabel">Use {mode} for light/dark theme variants</span>
             <input type="text" id="iosColors" value="Shared/Theme/Colors.swift">
           </div>
         </div>
@@ -672,6 +679,7 @@ textarea {
           <div class="config-section-title">🎨 Colors Configuration</div>
           <div class="config-group">
             <label class="config-label">Colors Dart Path</label>
+            <span class="config-sublabel">Use {mode} for light/dark theme variants</span>
             <input type="text" id="flutterColors" value="lib/theme/app_colors.dart">
           </div>
         </div>
@@ -785,7 +793,7 @@ textarea {
   var androidConfig = document.getElementById("androidConfig");
   var iosConfig = document.getElementById("iosConfig");
   var flutterConfig = document.getElementById("flutterConfig");
-  var platformBtns = document.querySelectorAll(".platform-selection .export-type-btn");
+  var platformBtns = document.querySelectorAll(".platform-btn");
   function updatePlatformConfigs() {
     const androidChecked = document.getElementById("platformAndroid").checked;
     const iosChecked = document.getElementById("platformIOS").checked;

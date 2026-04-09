@@ -2,7 +2,7 @@ import { sendLog } from './utils/debug';
 import { makeRequest } from './utils/network';
 import { encodeBase64 } from './utils/encoding';
 import { parseVariablesToAndroidXML, parseVariablesToIOSStrings, parseVariablesToFlutterARB } from './generators/strings';
-import { generateAndroidColorsXML, generateComposeColorsKotlin, generateIOSColorsSwift, generateFlutterColors } from './generators/colors';
+import { generateAndroidColorsXML, generateComposeColorsKotlin, generateIOSColorsSwift, generateFlutterColors, getColorModes } from './generators/colors';
 import {
   generateAndroidTypography, generateAndroidTypographyXML,
   generateIOSTypography, generateFlutterTypography
@@ -83,42 +83,83 @@ export async function uploadToGitHub(msg: any): Promise<void> {
     }
   }
 
-  // COLORS EXPORT
+  // COLORS EXPORT (supports multi-mode: light/dark theming via {mode} placeholder)
   if (exportTypes.colors && variablesData.colors && variablesData.colors.length > 0) {
     sendLog('Step 1b: Parsing colors...');
+
+    const colorModes = getColorModes(variablesData.colors);
+    const hasMultipleModes = colorModes.length > 1;
+
+    // For each mode, generate color files if the path contains {mode}
+    // If no {mode} placeholder and multiple modes exist, generate only for first mode (backward compat)
+    const resolveModePath = (pathTemplate: string, modeName: string): string => {
+      return pathTemplate.replace(/\{mode\}/gi, modeName.toLowerCase().replace(/\s+/g, '_'));
+    };
+
+    const pathHasModePlaceholder = (path: string): boolean => /\{mode\}/i.test(path);
+
+    // Determine which modes to iterate over for a given path
+    const getModesToGenerate = (path: string) => {
+      if (pathHasModePlaceholder(path)) {
+        return colorModes;
+      }
+      // No placeholder — generate only for first mode
+      return [colorModes[0]];
+    };
 
     if (platforms.android) {
       const colorFormat = filePaths.androidColorFormat || 'xml';
 
       if (colorFormat === 'xml' || colorFormat === 'both') {
-        const androidColorsXml = generateAndroidColorsXML(variablesData.colors);
-        fileUpdates.push({ path: filePaths.androidColorsXml, content: androidColorsXml });
-        sendLog('Backend: Generated Android colors.xml');
+        const modes = getModesToGenerate(filePaths.androidColorsXml);
+        modes.forEach(mode => {
+          const content = generateAndroidColorsXML(variablesData.colors, mode.modeId);
+          const path = resolveModePath(filePaths.androidColorsXml, mode.name);
+          fileUpdates.push({ path, content });
+          sendLog(`Backend: Generated Android colors.xml (${mode.name})`);
+        });
       }
 
       if (colorFormat === 'compose' || colorFormat === 'both') {
         if (filePaths.androidComposeColors && filePaths.androidComposeColors.trim()) {
-          const composeColors = generateComposeColorsKotlin(
-            variablesData.colors,
-            filePaths.androidComposePackage || null
-          );
-          fileUpdates.push({ path: filePaths.androidComposeColors, content: composeColors });
-          sendLog('Backend: Generated Compose Color.kt');
+          const modes = getModesToGenerate(filePaths.androidComposeColors);
+          modes.forEach(mode => {
+            const content = generateComposeColorsKotlin(
+              variablesData.colors,
+              filePaths.androidComposePackage || null,
+              mode.modeId
+            );
+            const path = resolveModePath(filePaths.androidComposeColors, mode.name);
+            fileUpdates.push({ path, content });
+            sendLog(`Backend: Generated Compose Color.kt (${mode.name})`);
+          });
         }
       }
     }
 
     if (platforms.ios) {
       const useSwiftUI = filePaths.iosColorStyle === 'swiftui';
-      const iosColors = generateIOSColorsSwift(variablesData.colors, useSwiftUI);
-      fileUpdates.push({ path: filePaths.iosColors, content: iosColors });
-      sendLog(`Backend: Generated iOS colors (${useSwiftUI ? 'SwiftUI' : 'UIKit'})`);
+      const modes = getModesToGenerate(filePaths.iosColors);
+      modes.forEach(mode => {
+        const content = generateIOSColorsSwift(variablesData.colors, useSwiftUI, mode.modeId);
+        const path = resolveModePath(filePaths.iosColors, mode.name);
+        fileUpdates.push({ path, content });
+        sendLog(`Backend: Generated iOS colors (${mode.name})`);
+      });
     }
 
     if (platforms.flutter) {
-      const flutterColors = generateFlutterColors(variablesData.colors);
-      fileUpdates.push({ path: filePaths.flutterColors, content: flutterColors });
-      sendLog('Backend: Generated Flutter colors');
+      const modes = getModesToGenerate(filePaths.flutterColors);
+      modes.forEach(mode => {
+        const content = generateFlutterColors(variablesData.colors, mode.modeId);
+        const path = resolveModePath(filePaths.flutterColors, mode.name);
+        fileUpdates.push({ path, content });
+        sendLog(`Backend: Generated Flutter colors (${mode.name})`);
+      });
+    }
+
+    if (hasMultipleModes) {
+      sendLog(`Backend: Generated colors for ${colorModes.length} modes: ${colorModes.map(m => m.name).join(', ')}`);
     }
   }
 

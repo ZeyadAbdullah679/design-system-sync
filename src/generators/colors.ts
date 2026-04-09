@@ -1,14 +1,42 @@
 import { ColorCollectionExport } from '../types';
 import { figmaColorToAndroidHex, figmaColorToComposeHex, figmaColorToHexString } from '../utils/colors';
 
-export function generateAndroidColorsXML(colorCollections: ColorCollectionExport[]): string {
+// Helper: resolve modeId — use provided or fall back to first mode
+function resolveModeId(collection: ColorCollectionExport, modeId?: string): string | undefined {
+  if (modeId) return modeId;
+  return collection.modes[0]?.modeId;
+}
+
+// Helper: clean "Color" prefix from variable names
+function cleanColorName(name: string): string {
+  return name.replace(/^color[\/\s-_]+/i, '');
+}
+
+// Helper: convert name to camelCase (first part lowercase)
+function toCamelCase(name: string): string {
+  const parts = name.split(/[^a-zA-Z0-9]+/).filter(p => p.length > 0);
+  return parts.length > 0
+    ? parts[0].toLowerCase() + parts.slice(1).map(p => p.charAt(0).toUpperCase() + p.slice(1)).join('')
+    : 'unnamed';
+}
+
+// Helper: convert name to PascalCase
+function toPascalCase(name: string): string {
+  const parts = name.split(/[^a-zA-Z0-9]+/).filter(part => part.length > 0);
+  return parts.length > 0
+    ? parts[0].charAt(0).toUpperCase() + parts[0].slice(1).toLowerCase() +
+      parts.slice(1).map(p => p.charAt(0).toUpperCase() + p.slice(1)).join('')
+    : 'Unnamed';
+}
+
+export function generateAndroidColorsXML(colorCollections: ColorCollectionExport[], modeId?: string): string {
   const colorMap: { [name: string]: string } = {};
 
   colorCollections.forEach(collection => {
-    const baseModeId = collection.modes[0]?.modeId;
+    const targetModeId = resolveModeId(collection, modeId);
 
     collection.variables.forEach(variable => {
-      const colorVal = baseModeId ? variable.values[baseModeId] : undefined;
+      const colorVal = targetModeId ? variable.values[targetModeId] : undefined;
       if (!colorVal) return;
 
       const androidHex = figmaColorToAndroidHex(colorVal);
@@ -29,7 +57,7 @@ export function generateAndroidColorsXML(colorCollections: ColorCollectionExport
   return xml;
 }
 
-export function generateComposeColorsKotlin(colorCollections: ColorCollectionExport[], packageName: string | null = null): string {
+export function generateComposeColorsKotlin(colorCollections: ColorCollectionExport[], packageName: string | null = null, modeId?: string): string {
   const lines: string[] = [];
 
   if (packageName) {
@@ -46,27 +74,14 @@ export function generateComposeColorsKotlin(colorCollections: ColorCollectionExp
   const colorDefs: { [name: string]: string } = {};
 
   colorCollections.forEach(collection => {
-    const baseModeId = collection.modes[0]?.modeId;
+    const targetModeId = resolveModeId(collection, modeId);
 
     collection.variables.forEach(variable => {
-      const colorVal = baseModeId ? variable.values[baseModeId] : undefined;
+      const colorVal = targetModeId ? variable.values[targetModeId] : undefined;
       if (!colorVal) return;
 
       const composeHex = figmaColorToComposeHex(colorVal);
-
-      // Remove "Color" prefix from variable name
-      let cleanName = variable.name.replace(/^color[\/\s-_]+/i, '');
-
-      const parts = cleanName
-        .split(/[^a-zA-Z0-9]+/)
-        .filter(part => part.length > 0);
-
-      // First part lowercase, rest preserve casing with first letter uppercase
-      const safeName = parts.length > 0
-        ? parts[0].charAt(0).toUpperCase() + parts[0].slice(1).toLowerCase() +
-        parts.slice(1).map(p => p.charAt(0).toUpperCase() + p.slice(1)).join('')
-        : 'Unnamed';
-
+      const safeName = toPascalCase(cleanColorName(variable.name));
       colorDefs[safeName] = composeHex;
     });
   });
@@ -79,7 +94,7 @@ export function generateComposeColorsKotlin(colorCollections: ColorCollectionExp
   return lines.join('\n');
 }
 
-export function generateIOSColorsSwift(colorCollections: ColorCollectionExport[], useSwiftUI: boolean): string {
+export function generateIOSColorsSwift(colorCollections: ColorCollectionExport[], useSwiftUI: boolean, modeId?: string): string {
   const lines: string[] = [];
 
   lines.push('// Generated from Figma color variables');
@@ -128,23 +143,14 @@ export function generateIOSColorsSwift(colorCollections: ColorCollectionExport[]
   const baseIndent = '    ';
 
   colorCollections.forEach(collection => {
-    const baseModeId = collection.modes[0]?.modeId;
+    const targetModeId = resolveModeId(collection, modeId);
 
     collection.variables.forEach(variable => {
-      const colorVal = baseModeId ? variable.values[baseModeId] : undefined;
+      const colorVal = targetModeId ? variable.values[targetModeId] : undefined;
       if (!colorVal) return;
 
       const hex = figmaColorToHexString(colorVal);
-
-      // Remove "Color" prefix from variable name
-      let cleanName = variable.name.replace(/^color[\/\s-_]+/i, '');
-
-      const parts = cleanName.split(/[^a-zA-Z0-9]+/).filter(p => p.length > 0);
-
-      // First part lowercase, rest preserve casing with first letter uppercase
-      const safeName = parts.length > 0
-        ? parts[0].toLowerCase() + parts.slice(1).map(p => p.charAt(0).toUpperCase() + p.slice(1)).join('')
-        : 'unnamed';
+      const safeName = toCamelCase(cleanColorName(variable.name));
 
       const colorType = useSwiftUI ? 'Color' : 'UIColor';
       const hasAlpha = colorVal.a < 1;
@@ -163,7 +169,7 @@ export function generateIOSColorsSwift(colorCollections: ColorCollectionExport[]
   return lines.join('\n');
 }
 
-export function generateFlutterColors(colorCollections: ColorCollectionExport[]): string {
+export function generateFlutterColors(colorCollections: ColorCollectionExport[], modeId?: string): string {
   const lines: string[] = [];
 
   lines.push('// Generated from Figma color variables');
@@ -172,10 +178,10 @@ export function generateFlutterColors(colorCollections: ColorCollectionExport[])
   lines.push('class AppColors {');
 
   colorCollections.forEach(collection => {
-    const baseModeId = collection.modes[0]?.modeId;
+    const targetModeId = resolveModeId(collection, modeId);
 
     collection.variables.forEach(variable => {
-      const colorVal = baseModeId ? variable.values[baseModeId] : undefined;
+      const colorVal = targetModeId ? variable.values[targetModeId] : undefined;
       if (!colorVal) return;
 
       const r = Math.round(colorVal.r * 255);
@@ -183,16 +189,7 @@ export function generateFlutterColors(colorCollections: ColorCollectionExport[])
       const b = Math.round(colorVal.b * 255);
       const a = Math.round(colorVal.a * 255);
 
-      // Remove "Color" prefix from variable name
-      let cleanName = variable.name.replace(/^color[\/\s-_]+/i, '');
-
-      const parts = cleanName.split(/[^a-zA-Z0-9]+/).filter(p => p.length > 0);
-
-      // First part lowercase, rest preserve casing with first letter uppercase
-      const safeName = parts.length > 0
-        ? parts[0].toLowerCase() + parts.slice(1).map(p => p.charAt(0).toUpperCase() + p.slice(1)).join('')
-        : 'unnamed';
-
+      const safeName = toCamelCase(cleanColorName(variable.name));
       lines.push(`  static const Color ${safeName} = Color.fromARGB(${a}, ${r}, ${g}, ${b});`);
     });
   });
@@ -200,4 +197,23 @@ export function generateFlutterColors(colorCollections: ColorCollectionExport[])
   lines.push('}');
   lines.push('');
   return lines.join('\n');
+}
+
+/**
+ * Get all unique modes across color collections.
+ * Returns array of { name, modeId } objects.
+ * If all collections have a single mode, returns just that one.
+ */
+export function getColorModes(colorCollections: ColorCollectionExport[]): { name: string; modeId: string }[] {
+  const modeMap = new Map<string, string>();
+
+  colorCollections.forEach(collection => {
+    collection.modes.forEach(mode => {
+      if (!modeMap.has(mode.modeId)) {
+        modeMap.set(mode.modeId, mode.name);
+      }
+    });
+  });
+
+  return Array.from(modeMap.entries()).map(([modeId, name]) => ({ name, modeId }));
 }

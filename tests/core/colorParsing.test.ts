@@ -1,5 +1,5 @@
 import { figmaColorToComposeHex, figmaColorToAndroidHex, figmaColorToHexString } from '../../src/utils/colors';
-import { generateAndroidColorsXML, generateComposeColorsKotlin, generateIOSColorsSwift, generateFlutterColors } from '../../src/generators/colors';
+import { generateAndroidColorsXML, generateComposeColorsKotlin, generateIOSColorsSwift, generateFlutterColors, getColorModes } from '../../src/generators/colors';
 
 describe('Color Parsing Tests', () => {
   const createMockColorVariable = (
@@ -273,6 +273,100 @@ describe('Color Parsing Tests', () => {
       expect(result).toContain('class AppColors {');
       expect(result).toContain('static const Color primary = Color.fromARGB(255, 98, 0, 238);');
       expect(result).toContain('static const Color secondary = Color.fromARGB(255, 3, 218, 198);');
+    });
+  });
+
+  describe('Multi-Mode Color Support (Theming)', () => {
+    const createMultiModeCollection = () => ({
+      id: 'col_theme',
+      name: 'Theme Colors',
+      modes: [
+        { name: 'Light', modeId: 'mode_light' },
+        { name: 'Dark', modeId: 'mode_dark' }
+      ],
+      variables: [
+        {
+          id: 'var_bg',
+          name: 'background',
+          description: '',
+          values: {
+            'mode_light': { r: 1, g: 1, b: 1, a: 1 },       // white
+            'mode_dark': { r: 0, g: 0, b: 0, a: 1 }          // black
+          }
+        },
+        {
+          id: 'var_text',
+          name: 'text',
+          description: '',
+          values: {
+            'mode_light': { r: 0, g: 0, b: 0, a: 1 },       // black
+            'mode_dark': { r: 1, g: 1, b: 1, a: 1 }          // white
+          }
+        }
+      ]
+    });
+
+    test('getColorModes should return all modes from collections', () => {
+      const collection = createMultiModeCollection();
+      const modes = getColorModes([collection]);
+
+      expect(modes).toHaveLength(2);
+      expect(modes[0].name).toBe('Light');
+      expect(modes[1].name).toBe('Dark');
+    });
+
+    test('should generate light mode colors when modeId is specified', () => {
+      const collection = createMultiModeCollection();
+      const result = generateAndroidColorsXML([collection], 'mode_light');
+
+      expect(result).toContain('#FFFFFFFF'); // white background
+      expect(result).toContain('#FF000000'); // black text
+    });
+
+    test('should generate dark mode colors when modeId is specified', () => {
+      const collection = createMultiModeCollection();
+      const result = generateAndroidColorsXML([collection], 'mode_dark');
+
+      expect(result).toContain('#FF000000'); // black background
+      expect(result).toContain('#FFFFFFFF'); // white text
+    });
+
+    test('should default to first mode when no modeId specified', () => {
+      const collection = createMultiModeCollection();
+      const resultDefault = generateAndroidColorsXML([collection]);
+      const resultExplicit = generateAndroidColorsXML([collection], 'mode_light');
+
+      expect(resultDefault).toBe(resultExplicit);
+    });
+
+    test('Compose generator should support modeId parameter', () => {
+      const collection = createMultiModeCollection();
+
+      const lightResult = generateComposeColorsKotlin([collection], null, 'mode_light');
+      expect(lightResult).toContain('Color(0xFFFFFFFF)'); // white
+
+      const darkResult = generateComposeColorsKotlin([collection], null, 'mode_dark');
+      expect(darkResult).toContain('Color(0xFF000000)'); // black
+    });
+
+    test('iOS generator should support modeId parameter', () => {
+      const collection = createMultiModeCollection();
+
+      const lightResult = generateIOSColorsSwift([collection], true, 'mode_light');
+      expect(lightResult).toContain('hex: "#FFFFFF"');
+
+      const darkResult = generateIOSColorsSwift([collection], true, 'mode_dark');
+      expect(darkResult).toContain('hex: "#000000"');
+    });
+
+    test('Flutter generator should support modeId parameter', () => {
+      const collection = createMultiModeCollection();
+
+      const lightResult = generateFlutterColors([collection], 'mode_light');
+      expect(lightResult).toContain('Color.fromARGB(255, 255, 255, 255)');
+
+      const darkResult = generateFlutterColors([collection], 'mode_dark');
+      expect(darkResult).toContain('Color.fromARGB(255, 0, 0, 0)');
     });
   });
 });

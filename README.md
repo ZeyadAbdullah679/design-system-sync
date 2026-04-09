@@ -2,7 +2,7 @@
 
 A powerful Figma plugin that automatically exports design tokens (strings, colors & typography) to GitHub repositories with support for Android, iOS, Flutter, and Kotlin Multiplatform projects.
 
-![Version](https://img.shields.io/badge/version-3.0.0-blue)
+![Version](https://img.shields.io/badge/version-4.0.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Platforms](https://img.shields.io/badge/platforms-Android%20%7C%20iOS%20%7C%20Flutter-orange)
 
@@ -15,20 +15,24 @@ A powerful Figma plugin that automatically exports design tokens (strings, color
 
 ### 🎨 Design Tokens (Colors)
 - 🤖 **Android**: XML `colors.xml` + Jetpack Compose `Color.kt`
-- 🍎 **iOS**: UIKit/SwiftUI color extensions with hex initializers
+- 🍎 **iOS**: UIKit/SwiftUI color extensions with hex initializers (generated automatically)
 - 🦋 **Flutter**: Dart color constants with `Color.fromARGB()`
-- 🎯 **Full RGBA Support**: Alpha channel with hex conversion
+- 🎯 **Full RGBA Support**: Alpha channel preserved across all platforms
+- 🌗 **Light/Dark Theming**: Export all color modes as separate files using `{mode}` placeholder
 
-### ✍️ Typography (Font Styles) - NEW in v3.0!
-- 🤖 **Android Compose**: `Typography.kt` with TextStyle definitions
-- 🍎 **iOS**: UIFont/SwiftUI Font extensions
-- 🦋 **Flutter**: `TextStyle` constants with font weights and sizes
-- 📐 **Comprehensive**: Includes fontSize, fontWeight, letterSpacing, lineHeight
+### ✍️ Typography (Font Styles)
+- 🤖 **Android Compose**: `Typography.kt` with TextStyle definitions and custom font family support
+- 📄 **Android XML**: `styles.xml` with TextAppearance styles including `fontFamily`
+- 🍎 **iOS**: SwiftUI `Font` / UIKit `UIFont` extensions with proper custom font handling
+- 🦋 **Flutter**: `TextStyle` constants with font weights, sizes, and line height ratios
+- 📐 **Comprehensive**: fontSize, fontWeight, fontFamily, letterSpacing, lineHeight
 
 ### 🚀 Automation
 - 🔄 **Automated PR Creation**: Creates pull requests automatically
+- 📱 **Multi-Platform Export**: Export Android + iOS + Flutter in a single PR
+- 🌿 **Configurable Branches**: Custom branch names and PR titles
+- 🔒 **Non-Destructive Updates**: Updates existing branches without deleting PR review comments
 - 💾 **Settings Persistence**: Save your configuration for quick exports
-- ⚙️ **Highly Configurable**: Customize paths, branches, PR templates
 - 🔐 **Secure**: Uses GitHub Personal Access Tokens
 
 ## 📦 Installation
@@ -83,33 +87,33 @@ Variables:
 
 #### Color Variables (Design Tokens)
 
-Create color variables in Figma:
+Create color variables in Figma. For theming, use multiple modes:
 
 ```
 Collection: "Brand Colors"
-├── Mode: Default
+├── Mode: Light
+├── Mode: Dark
 
 Variables:
-├── primary = #6200EE
-├── primary_dark = #3700B3
-├── secondary = #03DAC6
-├── background = #FFFFFF
-├── error = #B00020
-└── surface = #F5F5F5
+├── primary     = #6200EE / #BB86FC
+├── background  = #FFFFFF / #121212
+├── surface     = #F5F5F5 / #1E1E1E
+├── text        = #000000 / #FFFFFF
+└── error       = #B00020 / #CF6679
 ```
 
-#### Text Styles (Typography) - NEW! ✨
+#### Text Styles (Typography)
 
 Create text styles in Figma with your typography system:
 
 ```
 Text Styles:
-├── Headline Large (32pt, Bold)
-├── Headline Medium (24pt, SemiBold)
-├── Body Large (16pt, Regular)
-├── Body Medium (14pt, Regular)
-├── Label Small (12pt, Medium)
-└── Caption (10pt, Regular)
+├── Headline Large (32pt, Bold, Inter)
+├── Headline Medium (24pt, SemiBold, Inter)
+├── Body Large (16pt, Regular, Inter)
+├── Body Medium (14pt, Regular, Inter)
+├── Label Small (12pt, Medium, Inter)
+└── Caption (10pt, Regular, Inter)
 ```
 
 ### 2. Configure GitHub Settings
@@ -129,24 +133,42 @@ Text Styles:
 3. Click **"Test"** to verify connection
 4. Click **"Save"** to persist settings
 
-### 3. Choose Export Types
+### 3. Choose Export Types & Platforms
 
 Select what you want to export:
-
 - ✅ **Strings**: Localization strings for multi-language support
 - ✅ **Colors**: Design tokens for consistent theming
 - ✅ **Fonts**: Typography styles for text consistency
 
-### 4. Configure Platforms & Export
+Select one or more platforms:
+- ✅ **Android/KMP**: XML resources + Jetpack Compose
+- ✅ **iOS**: SwiftUI / UIKit
+- ✅ **Flutter**: Dart
 
-1. Select platforms: Android, iOS, and/or Flutter
-2. Customize file paths (defaults work for most projects)
+You can select multiple platforms to export everything in a single PR.
+
+### 4. Configure & Export
+
+1. Customize file paths (defaults work for most projects)
+2. Set branch name and PR title in the export section
 3. Click **"Load Variables from Figma"**
 4. Review the stats
 5. Click **"Export to GitHub"**
 6. Review the automated pull request! 🎉
 
-## 📱 Platform Examples
+## 🌗 Light/Dark Theme Support
+
+If your Figma color variables have multiple modes (e.g., "Light" and "Dark"), you can export each mode as a separate file using the `{mode}` placeholder in file paths:
+
+```
+Android:  values/{mode}/colors.xml        → values/light/colors.xml, values/dark/colors.xml
+iOS:      Theme/Colors_{mode}.swift       → Theme/Colors_light.swift, Theme/Colors_dark.swift
+Flutter:  lib/theme/colors_{mode}.dart    → lib/theme/colors_light.dart, lib/theme/colors_dark.dart
+```
+
+If your path does **not** contain `{mode}`, only the first mode (base theme) is exported — backward compatible with single-mode setups.
+
+## 📱 Platform Output Examples
 
 ### 🤖 Android / Kotlin Multiplatform
 
@@ -163,8 +185,8 @@ Select what you want to export:
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    lor name="primary">#FF6200EE</color>
-    lor name="secondary">#FF03DAC6</color>
+    <color name="primary">#FF6200EE</color>
+    <color name="secondary">#FF03DAC6</color>
 </resources>
 ```
 
@@ -183,33 +205,57 @@ val Secondary = Color(0xFF03DAC6)
 package com.example.theme
 
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
 val HeadlineLarge = TextStyle(
+    fontFamily = InterFontFamily,
     fontSize = 32.sp,
     fontWeight = FontWeight(700),
-    lineHeight = 40.sp
+    lineHeight = 38.4.sp
 )
+```
+
+**XML Typography (styles.xml):**
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="TextAppearance.HeadlineLarge">
+        <item name="android:fontFamily">Inter</item>
+        <item name="android:textSize">32sp</item>
+        <item name="android:textFontWeight">700</item>
+        <item name="android:lineHeight">38sp</item>
+    </style>
+</resources>
 ```
 
 ### 🍎 iOS / Swift
 
 **Localizable.strings:**
-```swift
+```
 /* Localization strings generated from Figma */
 
 "app_title" = "My App";
 "welcome_message" = "Welcome!";
 ```
 
-**SwiftUI Colors:**
+**SwiftUI Colors** (includes hex initializer):
 ```swift
 import SwiftUI
 
+// MARK: - Color Hex Initializer
+extension Color {
+    init(hex: String, opacity: Double = 1.0) {
+        // ... hex parsing logic generated automatically
+    }
+}
+
+// MARK: - Design System Colors
 extension Color {
     static let primary = Color(hex: "#6200EE")
     static let secondary = Color(hex: "#03DAC6")
+    static let overlay = Color(hex: "#000000", opacity: 0.5)
 }
 ```
 
@@ -217,9 +263,20 @@ extension Color {
 ```swift
 import SwiftUI
 
+// MARK: - Typography Styles
 extension Font {
-    static let headlineLarge = Font.system(size: 32, weight: .bold)
+    static let headlineLarge = Font.custom("Inter", size: 32).weight(.bold)
     static let bodyMedium = Font.system(size: 14, weight: .regular)
+}
+```
+
+**UIKit Typography** (custom font with fallback):
+```swift
+import UIKit
+
+extension UIFont {
+    static let headlineLarge = UIFont(name: "Inter", size: 32) ?? UIFont.systemFont(ofSize: 32, weight: .bold)
+    static let bodyMedium = UIFont.systemFont(ofSize: 14, weight: .regular)
 }
 ```
 
@@ -250,9 +307,10 @@ import 'package:flutter/material.dart';
 
 class AppTextStyles {
   static const TextStyle headlineLarge = TextStyle(
+    fontFamily: 'Inter',
     fontSize: 32,
     fontWeight: FontWeight.w700,
-    height: 1.25,
+    height: 1.2,
   );
 }
 ```
@@ -260,22 +318,33 @@ class AppTextStyles {
 ## 📁 Default File Paths
 
 ### Android / KMP
-- Strings: `shared/src/commonMain/composeResources/{lang}/strings.xml`
-- Colors XML: `shared/src/commonMain/composeResources/values/colors.xml`
-- Compose Colors: `shared/src/commonMain/kotlin/theme/Color.kt`
-- Typography: `shared/src/commonMain/kotlin/theme/Typography.kt`
+| Token Type | Path |
+|---|---|
+| Strings | `shared/src/commonMain/composeResources/{lang}/strings.xml` |
+| Colors XML | `shared/src/commonMain/composeResources/values/colors.xml` |
+| Compose Colors | `shared/src/commonMain/kotlin/theme/Color.kt` |
+| Typography XML | `shared/src/commonMain/composeResources/values/styles.xml` |
+| Compose Typography | `shared/src/commonMain/kotlin/theme/Typography.kt` |
 
 ### iOS
-- Strings: `{lang}.lproj/Localizable.strings`
-- Colors: `Shared/Theme/Colors.swift`
-- Typography: `Shared/Theme/Typography.swift`
+| Token Type | Path |
+|---|---|
+| Strings | `{lang}.lproj/Localizable.strings` |
+| Colors | `Shared/Theme/Colors.swift` |
+| Typography | `Shared/Theme/Typography.swift` |
 
 ### Flutter
-- Strings: `lib/l10n/app_{lang}.arb`
-- Colors: `lib/theme/app_colors.dart`
-- Typography: `lib/theme/app_text_styles.dart`
+| Token Type | Path |
+|---|---|
+| Strings | `lib/l10n/app_{lang}.arb` |
+| Colors | `lib/theme/app_colors.dart` |
+| Typography | `lib/theme/app_text_styles.dart` |
 
-**Note:** All paths are fully customizable!
+**Path Placeholders:**
+- `{lang}` — Replaced with language code/folder (e.g., `values-ar`, `Base.lproj`, `app_en.arb`)
+- `{mode}` — Replaced with color mode name (e.g., `light`, `dark`) for multi-theme exports
+
+All paths are fully customizable in the plugin UI.
 
 ## 🌍 Supported Languages
 
@@ -292,53 +361,93 @@ English, Arabic, Spanish, French, German, Italian, Portuguese, Russian, Chinese,
 ### File Paths
 - **"Path does not exist"**: Create folder structure first or adjust paths
 - Strings paths must include `{lang}` placeholder
+- For theming, include `{mode}` in color paths to get per-mode files
 
 ### Variables
 - **"No variables found"**: Create variables/text styles in Figma first
 - Typography requires Text Styles (not just text layers)
+- Colors require Color type variables (not solid paint fills)
 
 ## 🛠️ Development
 
+### Project Structure
+```
+src/
+├── plugin.ts              # Entry point (Figma sandbox)
+├── types.ts               # Shared type definitions
+├── constants.ts           # Language mapping
+├── github.ts              # GitHub PR workflow
+├── extractors/            # Figma API data extraction
+│   ├── colors.ts
+│   └── typography.ts
+├── generators/            # Platform-specific code generation
+│   ├── strings.ts         # Android XML, iOS strings, Flutter ARB
+│   ├── colors.ts          # Color files for all platforms
+│   └── typography.ts      # Typography files for all platforms
+├── utils/                 # Encoding, escaping, color conversion
+│   ├── encoding.ts
+│   ├── escaping.ts
+│   ├── colors.ts
+│   ├── network.ts
+│   └── debug.ts
+└── ui/                    # Plugin frontend
+    ├── ui.html
+    ├── ui.css
+    └── ui.ts
+```
+
 ### Build Commands
 ```bash
-npm install          # Install dependencies
-npm run build        # Build for production
-npm run watch        # Build with watch mode
-npm run clean        # Clean build artifacts
-npm test             # Run tests
+npm install           # Install dependencies
+npm run build         # Bundle src/ → code.js + ui.html via esbuild
+npm run watch         # Build with file watching
+npm run typecheck     # TypeScript type checking
+npm test              # Run tests
 npm run test:coverage # Run tests with coverage
+npm run lint          # ESLint
 ```
 
 ### Testing
-The plugin includes a comprehensive test suite with 60+ tests covering:
+The plugin includes 86+ tests covering:
 - String parsing (Android XML, iOS Strings, Flutter ARB)
-- Color conversion and generation
-- Typography generation
-- GitHub API integration
-- Edge cases and error handling
+- Color conversion, generation, and multi-mode theming
+- Typography generation with custom font handling
+- GitHub API integration (branch create/update, PR creation)
+- Encoding and escaping utilities
+- Edge cases (prefix stripping, alpha channels, special characters)
 
-Run tests with:
 ```bash
-npm test
+npm test                                    # Run all tests
+npx jest tests/core/colorParsing.test.ts    # Run a single test file
 ```
 
 ### Debug Mode
-Set `DEBUG_MODE = true` in both `code.ts` and `ui.html` to enable console logging.
+Set `DEBUG_MODE = true` in `src/utils/debug.ts` to enable console logging routed to the plugin UI.
 
 ## 📝 Changelog
 
-### v3.0.0 (2026-02-05) - Major Update! 🎉
-- ✨ NEW: Flutter platform support (ARB, Dart colors, TextStyle)
-- ✨ NEW: Typography/Font Styles export for all platforms
-- ✨ NEW: Extract text styles from Figma
+### v4.0.0 - Multi-Platform & Theming Update
+- ✨ **Multi-Platform Export**: Select Android + iOS + Flutter and export all in a single PR
+- ✨ **Light/Dark Theming**: Export all color modes as separate files with `{mode}` placeholder
+- ✨ **Configurable Branch & PR**: Custom branch names, PR titles, and commit messages
+- 🔒 **Non-Destructive Branch Updates**: Existing branches are updated via PATCH, preserving PR review comments
+- 🛠️ **Modular Codebase**: Refactored from 2 monolithic files into 15+ focused modules under `src/`
+- 🛠️ **esbuild Bundler**: Replaced `tsc` with esbuild for fast builds
+- 🐛 **iOS Hex Initializer**: Generated Swift code now includes the `Color(hex:)` / `UIColor(hex:)` extension
+- 🐛 **iOS Alpha Support**: Colors with transparency correctly pass `opacity:` / `alpha:` parameter
+- 🐛 **iOS Custom Fonts**: `Font.custom()` preserves exact font names; UIKit uses `UIFont(name:size:)` with fallback
+- 🐛 **Android XML fontFamily**: Typography styles now include `android:fontFamily`
+- 🧪 86+ tests with imports from source modules (no more duplicated test functions)
+
+### v3.0.0 (2026-02-05)
+- ✨ Flutter platform support (ARB, Dart colors, TextStyle)
+- ✨ Typography/Font Styles export for all platforms
+- ✨ Extract text styles from Figma
 - 🎨 Enhanced UI with 3 export types
-- 🦋 Complete Flutter integration
-- 🧪 Comprehensive test suite with 60+ tests
-- 🔧 Better type handling for Figma API objects
 
 ### v2.0.0 (2026-01-24)
-- ✨ NEW: Color variables support
-- ✨ NEW: Android Compose & iOS color extensions
+- ✨ Color variables support
+- ✨ Android Compose & iOS color extensions
 - 🎨 Renamed to "Design System Sync"
 
 ### v1.0.0 (2026-01-15)

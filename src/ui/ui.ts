@@ -35,7 +35,7 @@ const androidConfig = document.getElementById('androidConfig')!;
 const iosConfig = document.getElementById('iosConfig')!;
 const flutterConfig = document.getElementById('flutterConfig')!;
 
-const platformBtns = document.querySelectorAll('.platform-selection .export-type-btn');
+const platformBtns = document.querySelectorAll('.platform-btn');
 
 function updatePlatformConfigs() {
   const androidChecked = (document.getElementById('platformAndroid') as HTMLInputElement).checked;
