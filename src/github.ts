@@ -183,24 +183,44 @@ export async function uploadToGitHub(msg: any): Promise<void> {
   const baseSha = baseRefResponse.data.object.sha;
   sendLog(`Backend: Base SHA: ${baseSha.substring(0, 7)}`);
 
-  // Step 3: Create or reset branch
-  sendLog('Step 3: Creating/resetting branch...');
+  // Step 3: Create or update branch (non-destructive)
+  sendLog('Step 3: Creating/updating branch...');
   const branchRefUrl = `https://api.github.com/repos/${username}/${repo}/git/refs/heads/${targetBranch}`;
 
-  await makeRequest(branchRefUrl, { method: 'DELETE', headers });
+  // Check if branch already exists
+  const existingBranchResponse = await makeRequest(branchRefUrl, { method: 'GET', headers });
 
-  const createRefUrl = `https://api.github.com/repos/${username}/${repo}/git/refs`;
-  const createResponse = await makeRequest(createRefUrl, {
-    method: 'POST',
-    headers: headersWithContent,
-    body: JSON.stringify({
-      ref: `refs/heads/${targetBranch}`,
-      sha: baseSha
-    })
-  });
+  if (existingBranchResponse.ok) {
+    // Branch exists — update it to point to base branch SHA
+    sendLog('Backend: Branch exists, updating to latest base...');
+    const updateResponse = await makeRequest(branchRefUrl, {
+      method: 'PATCH',
+      headers: headersWithContent,
+      body: JSON.stringify({
+        sha: baseSha,
+        force: true
+      })
+    });
 
-  if (!createResponse.ok) {
-    throw new Error(`Failed to create branch '${targetBranch}': ${createResponse.error}`);
+    if (!updateResponse.ok) {
+      throw new Error(`Failed to update branch '${targetBranch}': ${updateResponse.error}`);
+    }
+  } else {
+    // Branch doesn't exist — create it
+    sendLog('Backend: Creating new branch...');
+    const createRefUrl = `https://api.github.com/repos/${username}/${repo}/git/refs`;
+    const createResponse = await makeRequest(createRefUrl, {
+      method: 'POST',
+      headers: headersWithContent,
+      body: JSON.stringify({
+        ref: `refs/heads/${targetBranch}`,
+        sha: baseSha
+      })
+    });
+
+    if (!createResponse.ok) {
+      throw new Error(`Failed to create branch '${targetBranch}': ${createResponse.error}`);
+    }
   }
 
   sendLog('Backend: Branch ready!');

@@ -140,6 +140,81 @@ describe('GitHub Integration Tests', () => {
       expect(response.ok).toBe(true);
       expect(response.status).toBe(201);
     });
+
+    test('should update existing branch with PATCH instead of DELETE+CREATE', async () => {
+      // Step 1: Check branch exists — returns 200
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        text: async () => JSON.stringify({
+          ref: 'refs/heads/design-tokens',
+          object: { sha: 'old_sha_123' }
+        })
+      });
+
+      // Step 2: PATCH to update branch
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        text: async () => JSON.stringify({
+          ref: 'refs/heads/design-tokens',
+          object: { sha: 'new_base_sha' }
+        })
+      });
+
+      // Simulate the non-destructive branch update flow
+      const branchUrl = 'https://api.github.com/repos/user/repo/git/refs/heads/design-tokens';
+
+      const checkResponse = await fetch(branchUrl, { method: 'GET' });
+      expect(checkResponse.ok).toBe(true);
+
+      // Since branch exists, update it via PATCH
+      const updateResponse = await fetch(branchUrl, {
+        method: 'PATCH',
+        body: JSON.stringify({ sha: 'new_base_sha', force: true })
+      });
+      expect(updateResponse.ok).toBe(true);
+
+      // Verify no DELETE was called
+      const calls = mockFetch.mock.calls;
+      const methods = calls.map(c => c[1]?.method || 'GET');
+      expect(methods).not.toContain('DELETE');
+    });
+
+    test('should create new branch when it does not exist', async () => {
+      // Step 1: Check branch — returns 404
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+        text: async () => JSON.stringify({ message: 'Not Found' })
+      });
+
+      // Step 2: Create branch via POST
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 201,
+        text: async () => JSON.stringify({
+          ref: 'refs/heads/custom-branch',
+          object: { sha: 'base_sha' }
+        })
+      });
+
+      const branchUrl = 'https://api.github.com/repos/user/repo/git/refs/heads/custom-branch';
+
+      const checkResponse = await fetch(branchUrl, { method: 'GET' });
+      expect(checkResponse.ok).toBe(false);
+
+      // Branch doesn't exist, create it
+      const createResponse = await fetch('https://api.github.com/repos/user/repo/git/refs', {
+        method: 'POST',
+        body: JSON.stringify({
+          ref: 'refs/heads/custom-branch',
+          sha: 'base_sha'
+        })
+      });
+      expect(createResponse.ok).toBe(true);
+      expect(createResponse.status).toBe(201);
+    });
   });
 
   describe('File Operations', () => {

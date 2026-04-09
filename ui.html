@@ -158,44 +158,8 @@ body {
 .platform-selection {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: 10px;
   margin-bottom: 16px;
-}
-
-.platform-radio {
-  position: relative;
-}
-
-.platform-radio input[type="radio"] {
-  position: absolute;
-  opacity: 0;
-}
-
-.platform-radio label {
-  display: block;
-  padding: 16px;
-  border: 2px solid #3f3f46;
-  border-radius: 10px;
-  background: #27272a;
-  cursor: pointer;
-  transition: all 0.2s;
-  text-align: center;
-  font-weight: 600;
-  font-size: 13px;
-  color: #e4e4e7;
-}
-
-.platform-radio input:checked+label {
-  border-color: #7c3aed;
-  background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%);
-  color: white;
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.5);
-}
-
-.platform-radio label:hover {
-  border-color: #7c3aed;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
 }
 
 /* Platform Config */
@@ -583,17 +547,20 @@ textarea {
     <div class="section">
       <div class="section-title">📱 Select Platform</div>
       <div class="platform-selection">
-        <div class="platform-radio">
-          <input type="radio" name="platform" id="platformAndroid" value="android" checked>
-          <label for="platformAndroid">🤖 Android/KMP</label>
+        <div class="export-type-btn active" data-platform="android">
+          <input type="checkbox" id="platformAndroid" checked>
+          <span class="export-type-icon">🤖</span>
+          <span class="export-type-label">Android/KMP</span>
         </div>
-        <div class="platform-radio">
-          <input type="radio" name="platform" id="platformIOS" value="ios">
-          <label for="platformIOS">🍎 iOS</label>
+        <div class="export-type-btn" data-platform="ios">
+          <input type="checkbox" id="platformIOS">
+          <span class="export-type-icon">🍎</span>
+          <span class="export-type-label">iOS</span>
         </div>
-        <div class="platform-radio">
-          <input type="radio" name="platform" id="platformFlutter" value="flutter">
-          <label for="platformFlutter">🦋 Flutter</label>
+        <div class="export-type-btn" data-platform="flutter">
+          <input type="checkbox" id="platformFlutter">
+          <span class="export-type-icon">🦋</span>
+          <span class="export-type-label">Flutter</span>
         </div>
       </div>
 
@@ -747,6 +714,16 @@ textarea {
     <!-- Step 5: Export -->
     <div class="section">
       <div class="section-title">🚀 Export to GitHub</div>
+      <div class="input-grid" style="margin-bottom: 12px;">
+        <div class="config-group">
+          <label class="config-label">Branch Name</label>
+          <input type="text" id="branchName" value="design-tokens" placeholder="design-tokens">
+        </div>
+        <div class="config-group">
+          <label class="config-label">PR Title</label>
+          <input type="text" id="prTitle" value="🎨 Update Design Tokens from Figma" placeholder="PR title">
+        </div>
+      </div>
       <div class="config-group">
         <label class="config-label">Commit Message</label>
         <textarea id="commitMessage" rows="2">🎨 Update design tokens from Figma</textarea>
@@ -805,18 +782,24 @@ textarea {
     document.getElementById("flutterColorsSection").classList.toggle("hidden", !exportColors);
     document.getElementById("flutterTypographySection").classList.toggle("hidden", !exportFonts);
   }
-  var platformRadios = document.querySelectorAll('input[name="platform"]');
   var androidConfig = document.getElementById("androidConfig");
   var iosConfig = document.getElementById("iosConfig");
   var flutterConfig = document.getElementById("flutterConfig");
-  platformRadios.forEach((radio) => {
-    radio.addEventListener("change", () => {
-      androidConfig.classList.remove("active");
-      iosConfig.classList.remove("active");
-      flutterConfig.classList.remove("active");
-      if (radio.value === "android") androidConfig.classList.add("active");
-      else if (radio.value === "ios") iosConfig.classList.add("active");
-      else if (radio.value === "flutter") flutterConfig.classList.add("active");
+  var platformBtns = document.querySelectorAll(".platform-selection .export-type-btn");
+  function updatePlatformConfigs() {
+    const androidChecked = document.getElementById("platformAndroid").checked;
+    const iosChecked = document.getElementById("platformIOS").checked;
+    const flutterChecked = document.getElementById("platformFlutter").checked;
+    androidConfig.classList.toggle("active", androidChecked);
+    iosConfig.classList.toggle("active", iosChecked);
+    flutterConfig.classList.toggle("active", flutterChecked);
+  }
+  platformBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const checkbox = btn.querySelector('input[type="checkbox"]');
+      checkbox.checked = !checkbox.checked;
+      btn.classList.toggle("active", checkbox.checked);
+      updatePlatformConfigs();
     });
   });
   var exportTypeBtns = document.querySelectorAll(".export-type-btn");
@@ -932,12 +915,15 @@ textarea {
       showMessage("Please select at least one export type", "error");
       return;
     }
-    const selectedPlatform = document.querySelector('input[name="platform"]:checked').value;
     const platforms = {
-      android: selectedPlatform === "android",
-      ios: selectedPlatform === "ios",
-      flutter: selectedPlatform === "flutter"
+      android: document.getElementById("platformAndroid").checked,
+      ios: document.getElementById("platformIOS").checked,
+      flutter: document.getElementById("platformFlutter").checked
     };
+    if (!platforms.android && !platforms.ios && !platforms.flutter) {
+      showMessage("Please select at least one platform", "error");
+      return;
+    }
     const androidColorFormat = document.querySelector("#androidColorFormatBtns .format-btn.active").dataset.format;
     const androidTypographyFormat = document.querySelector("#androidTypographyFormatBtns .format-btn.active").dataset.format;
     const iosColorStyle = document.querySelector("#iosColorStyleBtns .format-btn.active").dataset.format;
@@ -959,6 +945,8 @@ textarea {
       flutterTypography: document.getElementById("flutterTypography").value
     };
     const commitMessage = document.getElementById("commitMessage").value.trim();
+    const branchName = document.getElementById("branchName").value.trim();
+    const prTitle = document.getElementById("prTitle").value.trim();
     showMessage("Creating pull request...", "info");
     exportBtn.disabled = true;
     document.getElementById("exportBtnText").innerHTML = '<span class="spinner"></span> Exporting...';
@@ -971,8 +959,8 @@ textarea {
           exportTypes,
           platforms,
           filePaths,
-          branchName: "design-tokens",
-          prTitle: "\u{1F3A8} Update Design Tokens from Figma",
+          branchName: branchName || "design-tokens",
+          prTitle: prTitle || "\u{1F3A8} Update Design Tokens from Figma",
           prTemplate: "detailed"
         })
       }
@@ -994,10 +982,27 @@ textarea {
     if (msg.type === "load-config") {
       if (msg.config) {
         const config = msg.config;
-        if (config.selectedPlatform) {
-          document.getElementById("platform" + config.selectedPlatform.charAt(0).toUpperCase() + config.selectedPlatform.slice(1)).checked = true;
-          document.querySelector('input[name="platform"]:checked').dispatchEvent(new Event("change"));
+        if (config.selectedPlatforms) {
+          document.getElementById("platformAndroid").checked = config.selectedPlatforms.android !== false;
+          document.getElementById("platformIOS").checked = !!config.selectedPlatforms.ios;
+          document.getElementById("platformFlutter").checked = !!config.selectedPlatforms.flutter;
+          platformBtns.forEach((btn) => {
+            const checkbox = btn.querySelector('input[type="checkbox"]');
+            btn.classList.toggle("active", checkbox.checked);
+          });
+          updatePlatformConfigs();
+        } else if (config.selectedPlatform) {
+          document.getElementById("platformAndroid").checked = config.selectedPlatform === "android";
+          document.getElementById("platformIOS").checked = config.selectedPlatform === "ios";
+          document.getElementById("platformFlutter").checked = config.selectedPlatform === "flutter";
+          platformBtns.forEach((btn) => {
+            const checkbox = btn.querySelector('input[type="checkbox"]');
+            btn.classList.toggle("active", checkbox.checked);
+          });
+          updatePlatformConfigs();
         }
+        if (config.branchName) document.getElementById("branchName").value = config.branchName;
+        if (config.prTitle) document.getElementById("prTitle").value = config.prTitle;
         if (config.exportTypes) {
           document.getElementById("exportStrings").checked = config.exportTypes.strings !== false;
           document.getElementById("exportColors").checked = config.exportTypes.colors !== false;
@@ -1069,7 +1074,11 @@ textarea {
   };
   document.getElementById("saveConfigBtn").addEventListener("click", () => {
     var _a, _b, _c;
-    const selectedPlatform = document.querySelector('input[name="platform"]:checked').value;
+    const selectedPlatforms = {
+      android: document.getElementById("platformAndroid").checked,
+      ios: document.getElementById("platformIOS").checked,
+      flutter: document.getElementById("platformFlutter").checked
+    };
     const exportTypes = {
       strings: document.getElementById("exportStrings").checked,
       colors: document.getElementById("exportColors").checked,
@@ -1079,8 +1088,10 @@ textarea {
     const androidTypographyFormat = ((_b = document.querySelector("#androidTypographyFormatBtns .format-btn.active")) == null ? void 0 : _b.dataset.format) || "xml";
     const iosColorStyle = ((_c = document.querySelector("#iosColorStyleBtns .format-btn.active")) == null ? void 0 : _c.dataset.format) || "swiftui";
     const config = {
-      selectedPlatform,
+      selectedPlatforms,
       exportTypes,
+      branchName: document.getElementById("branchName").value,
+      prTitle: document.getElementById("prTitle").value,
       androidStrings: document.getElementById("androidStrings").value,
       androidColorsXml: document.getElementById("androidColorsXml").value,
       androidComposeColors: document.getElementById("androidComposeColors").value,

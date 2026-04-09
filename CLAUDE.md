@@ -47,7 +47,11 @@ esbuild (`esbuild.config.mjs`) bundles `src/plugin.ts` → `code.js` (IIFE) and 
 
 ### GitHub Integration
 
-The export flow: validate credentials → get base branch SHA → create feature branch → commit files → create PR. Uses GitHub REST API with token auth. Network access is restricted to `https://api.github.com` in the plugin manifest.
+The export flow: validate credentials → get base branch SHA → create/update feature branch → commit files → create PR. Uses GitHub REST API with token auth. Network access is restricted to `https://api.github.com` in the plugin manifest. Branch updates are non-destructive — existing branches are updated via PATCH rather than deleted and recreated, preserving PR review comments.
+
+### Multi-Platform Export
+
+The UI allows selecting multiple platforms (Android + iOS + Flutter) simultaneously via checkboxes. The backend generates files for all selected platforms in a single branch and PR. Branch name and PR title are configurable from the export section.
 
 ## Key Constraints
 

@@ -30,21 +30,29 @@ function updateVisibleSections() {
   document.getElementById('flutterTypographySection')!.classList.toggle('hidden', !exportFonts);
 }
 
-// Platform switching
-const platformRadios = document.querySelectorAll('input[name="platform"]');
+// Platform checkbox toggles
 const androidConfig = document.getElementById('androidConfig')!;
 const iosConfig = document.getElementById('iosConfig')!;
 const flutterConfig = document.getElementById('flutterConfig')!;
 
-platformRadios.forEach(radio => {
-  radio.addEventListener('change', () => {
-    androidConfig.classList.remove('active');
-    iosConfig.classList.remove('active');
-    flutterConfig.classList.remove('active');
+const platformBtns = document.querySelectorAll('.platform-selection .export-type-btn');
 
-    if ((radio as HTMLInputElement).value === 'android') androidConfig.classList.add('active');
-    else if ((radio as HTMLInputElement).value === 'ios') iosConfig.classList.add('active');
-    else if ((radio as HTMLInputElement).value === 'flutter') flutterConfig.classList.add('active');
+function updatePlatformConfigs() {
+  const androidChecked = (document.getElementById('platformAndroid') as HTMLInputElement).checked;
+  const iosChecked = (document.getElementById('platformIOS') as HTMLInputElement).checked;
+  const flutterChecked = (document.getElementById('platformFlutter') as HTMLInputElement).checked;
+
+  androidConfig.classList.toggle('active', androidChecked);
+  iosConfig.classList.toggle('active', iosChecked);
+  flutterConfig.classList.toggle('active', flutterChecked);
+}
+
+platformBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const checkbox = btn.querySelector('input[type="checkbox"]') as HTMLInputElement;
+    checkbox.checked = !checkbox.checked;
+    btn.classList.toggle('active', checkbox.checked);
+    updatePlatformConfigs();
   });
 });
 
@@ -191,12 +199,16 @@ document.getElementById('exportBtn')!.addEventListener('click', () => {
     return;
   }
 
-  const selectedPlatform = (document.querySelector('input[name="platform"]:checked') as HTMLInputElement).value;
   const platforms = {
-    android: selectedPlatform === 'android',
-    ios: selectedPlatform === 'ios',
-    flutter: selectedPlatform === 'flutter'
+    android: (document.getElementById('platformAndroid') as HTMLInputElement).checked,
+    ios: (document.getElementById('platformIOS') as HTMLInputElement).checked,
+    flutter: (document.getElementById('platformFlutter') as HTMLInputElement).checked
   };
+
+  if (!platforms.android && !platforms.ios && !platforms.flutter) {
+    showMessage('Please select at least one platform', 'error');
+    return;
+  }
 
   const androidColorFormat = (document.querySelector('#androidColorFormatBtns .format-btn.active') as HTMLElement).dataset.format;
   const androidTypographyFormat = (document.querySelector('#androidTypographyFormatBtns .format-btn.active') as HTMLElement).dataset.format;
@@ -223,6 +235,8 @@ document.getElementById('exportBtn')!.addEventListener('click', () => {
   };
 
   const commitMessage = (document.getElementById('commitMessage') as HTMLTextAreaElement).value.trim();
+  const branchName = (document.getElementById('branchName') as HTMLInputElement).value.trim();
+  const prTitle = (document.getElementById('prTitle') as HTMLInputElement).value.trim();
 
   showMessage('Creating pull request...', 'info');
   exportBtn.disabled = true;
@@ -238,8 +252,8 @@ document.getElementById('exportBtn')!.addEventListener('click', () => {
         exportTypes: exportTypes,
         platforms: platforms,
         filePaths: filePaths,
-        branchName: 'design-tokens',
-        prTitle: '🎨 Update Design Tokens from Figma',
+        branchName: branchName || 'design-tokens',
+        prTitle: prTitle || '🎨 Update Design Tokens from Figma',
         prTemplate: 'detailed'
       }
     }
@@ -268,11 +282,33 @@ window.onmessage = (event) => {
     if (msg.config) {
       const config = msg.config;
 
-      // Set platform
-      if (config.selectedPlatform) {
-        (document.getElementById('platform' + config.selectedPlatform.charAt(0).toUpperCase() + config.selectedPlatform.slice(1)) as HTMLInputElement).checked = true;
-        (document.querySelector('input[name="platform"]:checked') as HTMLInputElement).dispatchEvent(new Event('change'));
+      // Set platforms (checkbox-based)
+      if (config.selectedPlatforms) {
+        (document.getElementById('platformAndroid') as HTMLInputElement).checked = config.selectedPlatforms.android !== false;
+        (document.getElementById('platformIOS') as HTMLInputElement).checked = !!config.selectedPlatforms.ios;
+        (document.getElementById('platformFlutter') as HTMLInputElement).checked = !!config.selectedPlatforms.flutter;
+
+        platformBtns.forEach(btn => {
+          const checkbox = btn.querySelector('input[type="checkbox"]') as HTMLInputElement;
+          btn.classList.toggle('active', checkbox.checked);
+        });
+        updatePlatformConfigs();
+      } else if (config.selectedPlatform) {
+        // Backward compat: migrate old single-platform radio config
+        (document.getElementById('platformAndroid') as HTMLInputElement).checked = config.selectedPlatform === 'android';
+        (document.getElementById('platformIOS') as HTMLInputElement).checked = config.selectedPlatform === 'ios';
+        (document.getElementById('platformFlutter') as HTMLInputElement).checked = config.selectedPlatform === 'flutter';
+
+        platformBtns.forEach(btn => {
+          const checkbox = btn.querySelector('input[type="checkbox"]') as HTMLInputElement;
+          btn.classList.toggle('active', checkbox.checked);
+        });
+        updatePlatformConfigs();
       }
+
+      // Branch name and PR title
+      if (config.branchName) (document.getElementById('branchName') as HTMLInputElement).value = config.branchName;
+      if (config.prTitle) (document.getElementById('prTitle') as HTMLInputElement).value = config.prTitle;
 
       // Set export types
       if (config.exportTypes) {
@@ -361,9 +397,13 @@ window.onmessage = (event) => {
   }
 };
 
-// Save Configuration (Platform, Paths, Formats)
+// Save Configuration (Platforms, Paths, Formats, Branch, PR Title)
 document.getElementById('saveConfigBtn')!.addEventListener('click', () => {
-  const selectedPlatform = (document.querySelector('input[name="platform"]:checked') as HTMLInputElement).value;
+  const selectedPlatforms = {
+    android: (document.getElementById('platformAndroid') as HTMLInputElement).checked,
+    ios: (document.getElementById('platformIOS') as HTMLInputElement).checked,
+    flutter: (document.getElementById('platformFlutter') as HTMLInputElement).checked
+  };
 
   const exportTypes = {
     strings: (document.getElementById('exportStrings') as HTMLInputElement).checked,
@@ -376,8 +416,10 @@ document.getElementById('saveConfigBtn')!.addEventListener('click', () => {
   const iosColorStyle = (document.querySelector('#iosColorStyleBtns .format-btn.active') as HTMLElement)?.dataset.format || 'swiftui';
 
   const config = {
-    selectedPlatform: selectedPlatform,
+    selectedPlatforms: selectedPlatforms,
     exportTypes: exportTypes,
+    branchName: (document.getElementById('branchName') as HTMLInputElement).value,
+    prTitle: (document.getElementById('prTitle') as HTMLInputElement).value,
 
     androidStrings: (document.getElementById('androidStrings') as HTMLInputElement).value,
     androidColorsXml: (document.getElementById('androidColorsXml') as HTMLInputElement).value,
