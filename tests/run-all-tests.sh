@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🧪 Running Design System Sync Test Suite v3.0"
+echo "🧪 Running Design System Sync Test Suite"
 echo "=============================================="
 echo ""
 
